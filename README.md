@@ -76,11 +76,16 @@ ex) double a; double a = 3.14
 [개편 필요]
 
 8. 반복문 :
+
 (while) & (for) 통합
 (명제 P)동안 명령문
 
 (do while)
+
 {
-      명령문
+
+명령문
+
 }
+
 명제Q 동안
