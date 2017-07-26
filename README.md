@@ -78,6 +78,7 @@ ex) double a; double a = 3.14
 8. 반복문 :
 
 (while) & (for) 통합
+
 (명제 P)동안 명령문
 
 (do while)
