@@ -19,6 +19,10 @@
 은 == 는   
 각종 조사 등...
 
+## 자료형
+
+기본 자료형 : int(4 byte), double(8 byte)
+
 ## 기본 문법
 
 '와' 의 앞이 source 'b' 가 destination
