@@ -112,3 +112,42 @@ ex) double a; double a = 3.14
       ...
 }
 ```
+
+## Context-Free-Grammer
+
+```
+19
+F->fPS
+P->(LM)
+S->{EF}
+L->TV
+M->$
+M->,L
+E->TVWVWO.
+F->E
+F->$
+O->add
+O->sub
+O->mul
+O->div
+W->to
+W->from
+T->int
+T->double
+V->i
+V->j
+
+f(inti,intj){intitojfromadd.}#
+
+# F = Function
+# P = Parameter_list
+# S = Statement_list
+# L = Parameter_First
+# M = Parameter_Multi
+# E = Expression_First
+# F = Expression_Multi
+# O = Operator
+# V = Variable
+# W = Wording
+# T = Type
+```
