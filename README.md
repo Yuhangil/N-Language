@@ -119,13 +119,13 @@ ex) double a; double a = 3.14
 19
 F->fPS
 P->(LM)
-S->{EF}
+S->{EG}
 L->TV
 M->$
-M->,L
+M->,LM
 E->TVWVWO.
-F->E
-F->$
+G->EG
+G->$
 O->add
 O->sub
 O->mul
@@ -137,7 +137,7 @@ T->double
 V->i
 V->j
 
-f(inti,intj){intitojfromadd.}#
+f(inti,intj,doublej){intitojfromadd.intjtoifromsub.intitojfrommul.}#
 
 # F = Function
 # P = Parameter_list
