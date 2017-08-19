@@ -123,7 +123,7 @@ S->{EG}
 L->TI
 M->$
 M->,LM
-E->TIWVWO.
+E->TIWIWO.
 G->EG
 G->$
 O->add
