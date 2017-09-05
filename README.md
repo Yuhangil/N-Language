@@ -137,6 +137,28 @@ T->double
 V->i
 V->j
 
+Function -> Type Identifier Parameter Statement
+Parameter -> ( List1 List2 )
+Statement -> { Expression2 }
+List1 -> Type Identifier
+List2 -> ε
+List2 -> , List1 List2
+Expression1 -> Type Identifier Wording Identifier Wording Operator .
+Expression2 -> Expression1 Expression2
+Expression2 -> ε
+Operator -> add
+Operator -> sub
+Operator -> mul
+Operator -> div
+Wording -> to
+Wording -> from
+Type -> int
+Type -> double
+Identifier -> i
+Identifier -> j
+
+int j ( int i , double j ) { int i to j from add . int j to i from sub . int i to j from mul . } $
+
 f(inti,intj,doublej){intitojfromadd.intjtoifromsub.intitojfrommul.}#
 
 # F = Function
