@@ -120,10 +120,10 @@ ex) double a; double a = 3.14
 F->fPS
 P->(LM)
 S->{EG}
-L->TV
+L->TI
 M->$
 M->,LM
-E->TVWVWO.
+E->TIWIWO.
 G->EG
 G->$
 O->add
@@ -134,8 +134,8 @@ W->to
 W->from
 T->int
 T->double
-V->i
-V->j
+I->i
+I->j
 
 Function -> Type Identifier Parameter Statement
 Parameter -> ( List1 List2 )
@@ -169,7 +169,7 @@ f(inti,intj,doublej){intitojfromadd.intjtoifromsub.intitojfrommul.}#
 # E = Expression_First
 # F = Expression_Multi
 # O = Operator
-# V = Variable
+# I = Identifier
 # W = Wording
 # T = Type
 ```

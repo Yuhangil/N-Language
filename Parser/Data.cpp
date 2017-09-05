@@ -2,36 +2,23 @@
 
 Dataset::Dataset()
 {
-
+	pattern[0] = "([a-zA-Z_°¡-ÆR][a-zA-Z_°¡-ÆR0-9]*)(?=((Àº|´Â|ÀÌ|°¡|À»|¸¦|¿Í|¿¡|\\(\\w*\\))\\s))";
+	pattern[1] = "[{}]";
+	pattern[2] = "[()]";
+	pattern[3] = "(Á¤¼ö|½Ç¼ö)";
+	pattern[4] = "(Àº|´Â|ÀÌ|°¡|À»|¸¦|¿Í|¿¡)";
+	pattern[5] = "(´õÇÑ|»«|°öÇÑ|³ª´«)";
 }
 
-
-int Dataset::input(FILE* fp)
+void Dataset::input(char* filename)
 {
-	wchar_t ch = 0;
-	while (isspace(ch))
-		ch = fgetc(fp);
-
-	if (isId(ch))
-	{
-		do
-		{
-			buffer += ch;
-		} while (isId(ch));
-	}
-
+	wifstream ifs(filename);
+	while (getline(ifs, String))
+		buffer += String;
+	ifs.close();
 }
 
-
-bool Dataset::isId(wchar_t ch)
+void Dataset::solve(wstring Buffer)
 {
-	if ('°¡' <= ch && ch <= 'ÆR')
-	{
-		return 1;
-	}
-	else if (('A' <= ch && ch <= 'Z') || ('a' <= ch && ch <= 'z'))
-	{
-		return 1;
-	}
-	return 0;
+	
 }
