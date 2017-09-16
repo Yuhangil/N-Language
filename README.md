@@ -54,8 +54,6 @@ a에서 b를 나눈 값
 
 6. 변수 선언 :
 
--primitive :
-
 ex) int a; int a = 3
 정수 a를 만든다.
 정수 a는 3이다.
@@ -63,13 +61,6 @@ ex) int a; int a = 3
 ex) double a; double a = 3.14
 실수 a를 만든다.
 실수 a는 3.14이다.
-
--reference :
-
-정수 a[9]를 만든다.
-정수 a[9]는 1, 2, 3, 4, 5이다.
-
-이렇게 넣을경우 1, 2, 3, 4, 5, 0, 0, 0, 0
 
 7. 조건문 :
 
@@ -112,65 +103,4 @@ ex) double a; double a = 3.14
       ...
       @를 반환한다.
 }
-```
-
-## Context-Free-Grammer
-
-```
-19
-F->fPS
-P->(LM)
-S->{EG}
-L->TI
-M->$
-M->,LM
-E->TIWIWO.
-G->EG
-G->$
-O->add
-O->sub
-O->mul
-O->div
-W->to
-W->from
-T->int
-T->double
-I->i
-I->j
-
-Function -> Type Identifier Parameter Statement
-Parameter -> ( List1 List2 )
-Statement -> { Expression2 }
-List1 -> Type Identifier
-List2 -> ε
-List2 -> , List1 List2
-Expression1 -> Type Identifier Wording Identifier Wording Operator .
-Expression2 -> Expression1 Expression2
-Expression2 -> ε
-Operator -> add
-Operator -> sub
-Operator -> mul
-Operator -> div
-Wording -> to
-Wording -> from
-Type -> int
-Type -> double
-Identifier -> i
-Identifier -> j
-
-int j ( int i , double j ) { int i to j from add . int j to i from sub . int i to j from mul . } $
-
-f(inti,intj,doublej){intitojfromadd.intjtoifromsub.intitojfrommul.}#
-
-# F = Function
-# P = Parameter_list
-# S = Statement_list
-# L = Parameter_First
-# M = Parameter_Multi
-# E = Expression_First
-# F = Expression_Multi
-# O = Operator
-# I = Identifier
-# W = Wording
-# T = Type
 ```
