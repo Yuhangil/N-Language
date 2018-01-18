@@ -9,26 +9,26 @@
 
 enum Token
 {
-	Keyword_RETURN,			// ¹ÝÈ¯ÇÑ´Ù.
-	Keyword_IF,				// ¸¸¾à
-	Keyword_ELSE,			// ¾Æ´Ï¸é
-	Keyword_WHILE,			// ~ ÇÑ´Ù ex) (nÀÌ 3º¸´Ù Å©¸é) { ½ÇÇàÇÒ °Í } ÇÑ´Ù.
-	Keyword_BREAK,			// ±×¸¸ÇÑ´Ù.
-	Keyword_INT,			// Á¤¼ö
-	Keyword_DOUBLE,			// ½Ç¼ö
-	Keyword_DECLARATION,	// - ÀÖ
+	Keyword_RETURN,			// ë°˜í™˜í•œë‹¤.
+	Keyword_IF,				// ë§Œì•½
+	Keyword_ELSE,			// ì•„ë‹ˆë©´
+	Keyword_WHILE,			// ~ í•œë‹¤ ex) (nì´ 3ë³´ë‹¤ í¬ë©´) { ì‹¤í–‰í•  ê²ƒ } í•œë‹¤.
+	Keyword_BREAK,			// ê·¸ë§Œí•œë‹¤.
+	Keyword_INT,			// ì •ìˆ˜
+	Keyword_DOUBLE,			// ì‹¤ìˆ˜
+	Keyword_DECLARATION,	// - ìžˆ
 
-	Op_ASSIGN,				// ÀÌ´Ù
-	Op_ADD,					// ´õÇÑ
-	Op_SUB,					// »«
-	Op_MUL,					// °öÇÑ
-	Op_DIV,					// ³ª´«
-	Op_EQUAL,				// °°À¸¸é
-	Op_NOTEQUAL,			// ´Ù¸£¸é
-	Op_LESSTHAN,			// ~º¸´Ù ÀÛÀ¸¸é
-	Op_GREATERTHAN,			// ~º¸´Ù Å©¸é
-	Op_LESSTHANEQUAL,		// ~º¸´Ù ÀÛ°Å³ª °°À¸¸é
-	Op_GREATERTHANEQUAL,	// ~º¸´Ù Å©°Å³ª °°À¸¸é
+	Op_ASSIGN,				// ì´ë‹¤
+	Op_ADD,					// ë”í•œ
+	Op_SUB,					// ëº€
+	Op_MUL,					// ê³±í•œ
+	Op_DIV,					// ë‚˜ëˆˆ
+	Op_EQUAL,				// ê°™ìœ¼ë©´
+	Op_NOTEQUAL,			// ë‹¤ë¥´ë©´
+	Op_LESSTHAN,			// ~ë³´ë‹¤ ìž‘ìœ¼ë©´
+	Op_GREATERTHAN,			// ~ë³´ë‹¤ í¬ë©´
+	Op_LESSTHANEQUAL,		// ~ë³´ë‹¤ ìž‘ê±°ë‚˜ ê°™ìœ¼ë©´
+	Op_GREATERTHANEQUAL,	// ~ë³´ë‹¤ í¬ê±°ë‚˜ ê°™ìœ¼ë©´
 	
 	Punct_LPAREN,			// (
 	Punct_RPAREN,			// )
@@ -37,14 +37,14 @@ enum Token
 	Punct_LBRACK,			// [
 	Punct_RBRACK,			// ]
 
-	Id,						// ½Äº°ÀÚ
+	Id,						// ì‹ë³„ìž
 
-	Num_INT,				// Á¤¼ö ex) 12348579
-	Num_DOUBLE,				// ½Ç¼ö ex) 1358.74897
+	Num_INT,				// ì •ìˆ˜ ex) 12348579
+	Num_DOUBLE,				// ì‹¤ìˆ˜ ex) 1358.74897
 
 	END_OF_FILE,			// -1
 
-	ERROR,					// ex) ¨± ¨² ¨³
+	ERROR,					// ex) ã‰  ã‰¡ ã‰¢
 
 	UNKNOWN,				
 

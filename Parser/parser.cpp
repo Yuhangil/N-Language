@@ -12,29 +12,29 @@ int GetToken()
 	std::regex pattern[PatternSize] = 
 	{
 
-		std::regex("([a-zA-Z_°¡-ÆR][a-zA-Z_°¡-ÆR0-9]*)(?=((Àº|´Â|ÀÌ|°¡|À»|¸¦|¿Í|¿¡|\\(\\w*\\))\\s))"),			// Id
+		std::regex("([a-zA-Z_ê°€-í£][a-zA-Z_ê°€-í£0-9]*)(?=((ì€|ëŠ”|ì´|ê°€|ì„|ë¥¼|ì™€|ì—|\\(\\w*\\))\\s))"),			// Id
 		std::regex("[{}]"),																						// Default					
 		std::regex("[()]"),																						// Default
-		std::regex("Á¤¼ö"),																						// Keyword - INT
-		std::regex("½Ç¼ö"),																						// Keyword - DOUBLE
-		std::regex("ÀÖ"),																						// Keyword - DECLARATION
-		std::regex("¹İÈ¯ÇÑ"),																					// Keyword - RETURN
-		std::regex("¸¸¾à"),																						// Keyword - IF	
-		std::regex("¾Æ´Ï¸é"),																					// Keyword - ELSE
-		std::regex("ÇÑ"),																						// Keyword - WHILE
-		std::regex("±×¸¸ÇÑ"),																					// Keyword - BREAK
-		std::regex("(Àº|´Â|ÀÌ|°¡|À»|¸¦|¿Í|¿¡)"),																// Josa
+		std::regex("ì •ìˆ˜"),																						// Keyword - INT
+		std::regex("ì‹¤ìˆ˜"),																						// Keyword - DOUBLE
+		std::regex("ìˆ"),																						// Keyword - DECLARATION
+		std::regex("ë°˜í™˜í•œ"),																					// Keyword - RETURN
+		std::regex("ë§Œì•½"),																						// Keyword - IF	
+		std::regex("ì•„ë‹ˆë©´"),																					// Keyword - ELSE
+		std::regex("í•œ"),																						// Keyword - WHILE
+		std::regex("ê·¸ë§Œí•œ"),																					// Keyword - BREAK
+		std::regex("(ì€|ëŠ”|ì´|ê°€|ì„|ë¥¼|ì™€|ì—)"),																// Josa
 		std::regex("^-?\\d*"),																					// Number - INT
 		std::regex("^-?\\d*(\\.\\d+)?$"),																		// Number - DOUBLE
-		std::regex("ÀÌ´Ù"),
-		std::regex("´õÇÑ´Ù"),																					// Operator - ADD
-		std::regex("»«´Ù"),																						// Operator - SUB
-		std::regex("°öÇÑ´Ù"),																					// Operator - MUL
-		std::regex("³ª´«"),																						// Operator - DIV
+		std::regex("ì´ë‹¤"),
+		std::regex("ë”í•œë‹¤"),																					// Operator - ADD
+		std::regex("ëº€ë‹¤"),																						// Operator - SUB
+		std::regex("ê³±í•œë‹¤"),																					// Operator - MUL
+		std::regex("ë‚˜ëˆˆ"),																						// Operator - DIV
 		
 	};
 
-	std::regex removePattern("([°¡-ÆR][°¡-ÆR]*)(´Ù.) |°ª");
+	std::regex removePattern("([ê°€-í£][ê°€-í£]*)(ë‹¤.) |ê°’");
 	std::ifstream file("data.txt");
 	std::string buffer;
 	std::string temporary;
