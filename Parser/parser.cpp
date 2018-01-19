@@ -1,6 +1,6 @@
 #include "parser.hpp"
 
-const int patternSize = 22;
+const int patternSize = 19;
 
 int main()
 {
@@ -25,29 +25,45 @@ int GetToken()
 		std::regex("반환한다"),
 		std::regex("한다"),
 		std::regex("그만한다"),
-		std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)(?=((은|는|이|가|을|를|와|에|[(])))"),
-		std::regex("(은|는|이|가|을|를|와|에)"),
+		std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)"),
 		std::regex("[{}]"),
 		std::regex("[()]")	
 	};
 
-	std::regex removePattern("([가-힣][가-힣]*다)(\\.)");
-	std::ifstream file("../data.txt");
+	std::regex removePattern[5] =	{
+		std::regex("([가-힣][가-힣]*다)(\\.)"),
+		std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)([(])"),
+		std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)(은|는|이|가|을|를|와|에)"),
+		std::regex("([()])"),
+		std::regex("( )+")
+	};
+	std::ifstream file("data.txt");
+	std::ofstream output("output.txt");
 	std::string buffer;
 	std::string original;
 	std::string temporary;
+	std::stringstream stringStream;
+	stringStream << file.rdbuf();
+	temporary = stringStream.str();
 	std::smatch Match;
 
-	while (std::getline(file, temporary))	{
-		temporary = std::regex_replace(temporary, removePattern, std::string("$1"));
-		original = temporary;
-		for (int i = 0; i < patternSize - 1; ++i)	{
-			temporary = std::regex_replace(temporary, pattern[i], std::to_string(i + 1) + " ");
-		}
-		buffer += temporary;
+	temporary = std::regex_replace(temporary, removePattern[0], std::string("$1"));
+	temporary = std::regex_replace(temporary, removePattern[1], std::string("$1 $2"));
+	temporary = std::regex_replace(temporary, removePattern[2], std::string("$1"));
+	temporary = std::regex_replace(temporary, removePattern[3], std::string(" $1 "));
+	temporary = std::regex_replace(temporary, removePattern[4], std::string(" "));
+
+	original = temporary;
+
+	for (int i = 0; i < patternSize; ++i)	{
+		temporary = std::regex_replace(temporary, pattern[i], std::to_string(i + 1) + " ");
 	}
 
-	std::cout << buffer << "\n";
+	std::cout << temporary << "\n";
+	std::cout << original << "\n";
+
+	output << temporary << "\n";
+	output << original << "\n";
 
 	return 0;
 }
