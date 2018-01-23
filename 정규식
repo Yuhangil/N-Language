@@ -1,0 +1,36 @@
+std::regex pattern[patternSize] =
+{
+	std::regex("^-?\\d+"),
+	std::regex("^-?\\d+\\.\\d+?$"),
+	std::regex("정수"),
+	std::regex("실수"),
+	std::regex("만약"),
+	std::regex("아니면"),
+	std::regex("있다"),
+	std::regex("이다"),
+	std::regex("더한다"),
+	std::regex("뺀다"),
+	std::regex("곱한다"),
+	std::regex("나눈다"),
+	std::regex("뺀"),
+	std::regex("더한"),
+	std::regex("곱한"),
+	std::regex("나눈"),
+	std::regex("반환한다"),
+	std::regex("한다"),
+	std::regex("그만한다"),
+	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)"),
+	std::regex("[{}]"),
+	std::regex("[()]"),
+	std::regex(".");
+};
+
+
+std::regex removePattern[5] =
+{
+	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)([(])"),
+	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)(은|는|이|가|을|를|와|에)"),
+	std::regex("([()])"),
+	std::regex("( )+"),
+	std::regex("(더한|뺀|곱한|나눈)( )(값)"),
+};
