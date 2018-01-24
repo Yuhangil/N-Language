@@ -1,27 +1,49 @@
 #include <iostream>
 #include <vector>
+#include <map>
 
-std::stringstream GetCode(std::ifstream fileStream);
-int getToken(std::string buffer);
+enum Token  {
+    tokenInteger = 1,
+    tokenDouble = 2,
+    tokenType = 3,
+	tokenReturnType = 4,
+	tokenIf = 5,
+	tokenElse = 6,
+	tokenReturn = 7,
+	tokenWhile = 8,
+	tokenBreak = 9,
+	tokenOperator = 10,
+	tokenIdentifier = 11,
+	tokenPunctuation = 12
+};
 
 class ExprAST	{
 public:
 	virtual ~ExprAST()	{}
 };
 
-class NumExprAST : public ExprAST	{
+class IntegerExprAST : public ExprAST	{
+	int value;
+
+public:
+	IntegerExprAST(int value) : value(value) {}
+};
+
+class DoubleExprAST : public ExprAST	{
 	double value;
 
 public:
-	NumExprAST(double value) : value(value) {}
+	DoubleExprAST(double value) : value(value) {}
 };
 
 class VarExprAST : public ExprAST	{
+	std::string type;
 	std::string name;
 
 public:
-	VarExprAST(const std::string &name) : name(name) {}
+	VarExprAST(const std::string &type, const std::string &name) : type(type), name(name) {}
 };
+
 
 class OpExprAST : public ExprAST	{
 	char Op;
@@ -51,3 +73,5 @@ class FunctionAST {
 public: 
 	FunctionAST(std::unique_ptr<PrototypeAST> Proto, std::unique_ptr<ExprAST> Body) : Proto(std::move(Proto)), Body(std::move(Body)) {}
 };
+
+extern int StoreToken();
