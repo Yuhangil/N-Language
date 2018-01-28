@@ -46,6 +46,7 @@
         "strstream": "cpp",
         "__bit_reference": "cpp",
         "bitset": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "__functional_03": "cpp"
     }
 }
