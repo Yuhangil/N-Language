@@ -109,9 +109,9 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
 }
 
 static std::unique_ptr<ExprAST> ParseExpression(int mode) {
-    if(tokenArray[currentIterator] == tokenPunctuation) {
-        return nullptr;
-    }
+    // if(tokenArray[currentIterator] == tokenPunctuation) {
+    //     return nullptr;
+    // }
 
     std::string condition;
     std::vector<std::unique_ptr<ExprAST>> exprArray;
@@ -123,6 +123,7 @@ static std::unique_ptr<ExprAST> ParseExpression(int mode) {
     }
 
     while(valueArray[currentIterator] != condition)    {
+        std::cout << "1" << "\n";
         if(tokenArray[currentIterator] == tokenOperator)    {
             std::unique_ptr<ExprAST> LLHS = std::move(exprArray.back());
             exprArray.erase(exprArray.end());
@@ -141,12 +142,15 @@ static std::unique_ptr<ExprAST> ParseExpression(int mode) {
         }
 
         if((result = ParsePrimary())) {
-
+            std::cout << "Hi" << "\n";
             exprArray.push_back(std::move(result));
             GetNextToken();
         }
     }
 
+    if(exprArray.empty())   {
+        return nullptr;
+    }
     result = std::move(exprArray.back());
 
     return result;
@@ -206,7 +210,7 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
 }
 
 static void HandleDefinition() {
-    if (!ParseDefinition()) {
+    if (ParseDefinition()) {
         std::cout << "Hi" << "\n";
     } else {
         // Skip token for error recovery.

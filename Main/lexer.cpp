@@ -45,8 +45,6 @@ int StoreToken(std::ifstream &fileStream)	{
 	temporary = std::regex_replace(temporary, removePattern[4], std::string(" "));
     temporary = std::regex_replace(temporary, removePattern[5], std::string("$1") + "다");
 
-    std::cout << temporary << "\n";
-
 	original = temporary;
 
 	for (int i = 0; i < patternSize; ++i)	{
