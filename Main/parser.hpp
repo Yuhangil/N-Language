@@ -1,21 +1,24 @@
-#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/Scalar/GVN.h"
-#include "../include/KaleidoscopeJIT.h"
+#ifndef __PARSER_H__
+#define __PARSER_H__
+
+// #include "llvm/ADT/APFloat.h"
+// #include "llvm/ADT/STLExtras.h"
+// #include "llvm/IR/BasicBlock.h"
+// #include "llvm/IR/Constants.h"
+// #include "llvm/IR/DerivedTypes.h"
+// #include "llvm/IR/Function.h"
+// #include "llvm/IR/Instructions.h"
+// #include "llvm/IR/IRBuilder.h"
+// #include "llvm/IR/LLVMContext.h"
+// #include "llvm/IR/LegacyPassManager.h"
+// #include "llvm/IR/Module.h"
+// #include "llvm/IR/Type.h"
+// #include "llvm/IR/Verifier.h"
+// #include "llvm/Support/TargetSelect.h"
+// #include "llvm/Target/TargetMachine.h"
+// #include "llvm/Transforms/Scalar.h"
+// #include "llvm/Transforms/Scalar/GVN.h"
+// #include "../include/KaleidoscopeJIT.h"
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -27,6 +30,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <typeinfo>
 
 enum Token    {
     tokenInteger = 1,
@@ -50,19 +54,19 @@ enum Mode   {
 
 class ExprAST {
 public:
+    //virtual llvm::Value *codegen() = 0;
     virtual ~ExprAST() = default;
-
-    virtual Value *codegen() = 0;
 };
 
 class NumberExprAST : public ExprAST    {
     std::string type;
     double value;
 
-    NumberExprAST(std::string type, double value) : type(type), value(value) {}
+public:
+    NumberExprAST(const std::string &type, double value) : type(type), value(value) {}
 
-    Value* codegen() override;
-}
+    //llvm::Value* codegen() override;
+};
 
 class IdentifierExprAST : public ExprAST    {
     std::string name;
@@ -70,9 +74,9 @@ class IdentifierExprAST : public ExprAST    {
 public:
     IdentifierExprAST(const std::string &name) : name(name) {}
 
-    Value *codegen() override;
-    const std::string &getName() const { return name; }
-}
+    //llvm::Value *codegen() override;
+    //const std::string &getName() const { return name; }
+};
 
 /// VariableExprAST - Expression class for referencing a variable, like "a".
 class DeclareExprAST : public ExprAST {
@@ -80,10 +84,9 @@ class DeclareExprAST : public ExprAST {
     std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> varNames;
 
 public:
-    DeclareExprAST(const std::string &type, std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> varNames) : type(type), varNames(varNames) {}
+    DeclareExprAST(const std::string &type, std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> varNames) : type(type), varNames(std::move(varNames)) {}
 
-    Value *codegen() override;
-    const std::string &getName() const { return Name; }
+    //llvm::Value *codegen() override;
 };
 
 /// IfExprAST - Expression class for if/then/else.
@@ -95,7 +98,7 @@ public:
 //                         std::unique_ptr<ExprAST> Else)
 //             : Cond(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) {}
 
-//     Value *codegen() override;
+//     llvm::Value *codegen() override;
 // };
 
 /// ForExprAST - Expression class for for/in.
@@ -110,17 +113,16 @@ public:
 //             : VarName(VarName), Start(std::move(Start)), End(std::move(End)),
 //                 Step(std::move(Step)), Body(std::move(Body)) {}
 
-//     Value *codegen() override;
+//     llvm::Value *codegen() override;
 // };
 
-
 class OpExprAST : public ExprAST	{
-	char Op;
+	std::string Op;
 	std::unique_ptr<ExprAST> LLHS, LHS;
 
 public:
-	OpExprAST(char Op, std::unique_ptr<ExprAST> LLHS, std::unique_ptr<ExprAST> LHS) : Op(Op), LLHS(std::move(LLHS)), LHS(std::move(LHS)) {}
-    Value *codegen() override;
+	OpExprAST(std::string Op, std::unique_ptr<ExprAST> LLHS, std::unique_ptr<ExprAST> LHS) : Op(Op), LLHS(std::move(LLHS)), LHS(std::move(LHS)) {}
+    //llvm::Value *codegen() override;
 };
 
 class CallExprAST : public ExprAST { 
@@ -128,14 +130,14 @@ class CallExprAST : public ExprAST {
 	std::vector<std::unique_ptr<ExprAST>> args; 
 public: 
 	CallExprAST(const std::string &callee, std::vector<std::unique_ptr<ExprAST>> args) : callee(callee), args(std::move(args)) {} 
-    Value *codegen() override;
+    //llvm::Value *codegen() override;
 };
 
 class ReturnExprAST : public ExprAST	{
 	std::unique_ptr<ExprAST> returns;
 public:
 	ReturnExprAST(std::unique_ptr<ExprAST> returns) : returns(std::move(returns))	{}
-    Value *codegen() override;
+    //llvm::Value *codegen() override;
 };
 
 class PrototypeAST { 
@@ -143,7 +145,7 @@ class PrototypeAST {
 	std::vector<std::string> args; 
 public: 
 	PrototypeAST(const std::string &name, std::vector<std::string> args) : name(name), args(std::move(args)) {}
-    Function* codegen();
+    //llvm::Function* codegen();
 }; 
 
 class FunctionAST { 
@@ -151,6 +153,8 @@ class FunctionAST {
 	std::vector<std::unique_ptr<ExprAST>> body; 
 	std::unique_ptr<ReturnExprAST> returns;
 public: 
-	FunctionAST(std::unique_ptr<PrototypeAST> proto, std::vector<std::unique_ptr<ExprAST>> body) : proto(std::move(proto)), body(std::move(body)) {}
-    Function* codegen();
+	FunctionAST(std::unique_ptr<PrototypeAST> proto, std::vector<std::unique_ptr<ExprAST>> body, std::unique_ptr<ReturnExprAST> returns) : proto(std::move(proto)), body(std::move(body)), returns(std::move(returns)) {}
+    //llvm::Function* codegen();
 };
+
+#endif

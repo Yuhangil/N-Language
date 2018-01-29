@@ -1,20 +1,41 @@
 #include "lexer.hpp"
 
-extern std::vector<std::string> valueArray;
-extern std::vector<int> tokenArray;
+std::vector<std::string> valueArray;
+std::vector<int> tokenArray;
 
-int main()  {
-    StoreToken();
-}
+std::regex pattern[patternSize] =
+{
+	std::regex("^-?\\d+"),
+	std::regex("^-?\\d+\\.\\d+"),
+	std::regex("정수|실수"),
+	std::regex("정수형|실수형"),
+	std::regex("만약"),
+	std::regex("아니면"),
+	std::regex("반환한다"),
+	std::regex("한다"),
+	std::regex("그만한다"),
+	std::regex("(더한다|뺀다|곱한다|나눈다|이다)"),
+	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)"),
+	std::regex("\\{|\\}|\\(|\\)|\\[|\\]|\\.|\\,")
+};
 
-int StoreToken()	{
-	std::ifstream file("data.txt");
-    std::ofstream output("output.txt");
+
+std::regex removePattern[6] =
+{
+	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)([\\(])"),
+	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)(은|는|이|가|을|를|와|에)"),
+	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*|-?\\d+\\.?\\d*)(이다\\.)"),
+	std::regex("([\\(]|[\\)])"),
+	std::regex("( )+|(있다)"),
+	std::regex("(더한|뺀|곱한|나눈)( )(값)"),
+};
+
+int StoreToken(std::ifstream &fileStream)	{
 	std::string original;
 	std::string temporary;
 	std::string temp;
 	std::stringstream stringStream;
-	stringStream << file.rdbuf();
+	stringStream << fileStream.rdbuf();
 	temporary = stringStream.str();
 
 	temporary = std::regex_replace(temporary, removePattern[0], std::string("$1 $2"));
