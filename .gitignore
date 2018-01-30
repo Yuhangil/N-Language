@@ -33,3 +33,4 @@ Temporary Items
 a.out
 .vscode
 trash
+*.o

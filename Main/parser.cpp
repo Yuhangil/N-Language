@@ -2,7 +2,6 @@
 #include "lexer.hpp"
 
 unsigned int currentIterator = 0;
-unsigned int operatorIterator = 0;
 
 std::unique_ptr<ExprAST> LogError(const char *Str) {
     fprintf(stderr, "LogError: %s\n", Str);
@@ -107,16 +106,12 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
     //    return ParseIfExpr();
     //case tokenWhile:
     //    return ParseForExpr();
-    //default:
-    //    return LogError("unknown token when expecting an expression");
+    default:
+        return LogError("unknown token when expecting an expression");
     }
 }
 
 static std::unique_ptr<ExprAST> ParseExpression(int mode) {
-    // if(tokenArray[currentIterator] == tokenPunctuation) {
-    //     return nullptr;
-    // }
-
     std::string condition;
     std::vector<std::unique_ptr<ExprAST>> exprArray;
     std::unique_ptr<ExprAST> result;
@@ -216,11 +211,9 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
 }
 
 static void HandleDefinition() {
-    if (ParseDefinition()) {
+    if (auto result = ParseDefinition()) {
         std::cout << "function parsing..." << "\n";
     } else {
-        // Skip token for error recovery.
-        GetNextToken();
         exit(0);
     }
 }
