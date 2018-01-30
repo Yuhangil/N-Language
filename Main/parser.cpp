@@ -20,13 +20,17 @@ int GetNextToken() {
 static std::unique_ptr<ExprAST> ParseExpression(int mode);
 
 static std::unique_ptr<ExprAST> ParseNumberExpr()   {
-    std::string type = valueArray[currentIterator];
-
-    GetNextToken();
+    std::string type;
+    switch(tokenArray[currentIterator]) {
+        case tokenInteger: type = "int";
+        case tokenDouble: type = "double";
+    }
 
     double value = std::stod(valueArray[currentIterator]);
     
     auto result = std::make_unique<NumberExprAST>(type, value);
+
+    GetNextToken();
 
     return std::move(result);
 }
@@ -77,13 +81,13 @@ static std::unique_ptr<ExprAST> ParseTypeExpr() {
     // At least one variable name is required.
     if (tokenArray[currentIterator] != tokenIdentifier) {
         return LogError("expected identifier after var");
-    }
-    
-    GetNextToken(); // eat identifier.
+    } // eat identifier.
 
     std::unique_ptr<ExprAST> initializer = nullptr;
 
     initializer = ParseExpression(modeDot);
+
+    GetNextToken();
 
     varNames.push_back(std::make_pair(idName, std::move(initializer)));
 
@@ -92,6 +96,8 @@ static std::unique_ptr<ExprAST> ParseTypeExpr() {
 
 static std::unique_ptr<ExprAST> ParsePrimary() {
     switch (tokenArray[currentIterator]) {
+    case tokenType:
+        return ParseTypeExpr();
     case tokenIdentifier:
         return ParseIdentifierExpr();
     case tokenInteger:
@@ -101,10 +107,8 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
     //    return ParseIfExpr();
     //case tokenWhile:
     //    return ParseForExpr();
-    case tokenType:
-        return ParseTypeExpr();
-    // default:
-    //     return LogError("unknown token when expecting an expression");
+    //default:
+    //    return LogError("unknown token when expecting an expression");
     }
 }
 
@@ -123,30 +127,29 @@ static std::unique_ptr<ExprAST> ParseExpression(int mode) {
     }
 
     while(valueArray[currentIterator] != condition)    {
-        std::cout << "1" << "\n";
         if(tokenArray[currentIterator] == tokenOperator)    {
             std::unique_ptr<ExprAST> LLHS = std::move(exprArray.back());
-            exprArray.erase(exprArray.end());
+            exprArray.erase(exprArray.end() - 1);
             std::unique_ptr<ExprAST> LHS = std::move(exprArray.back());
-            exprArray.erase(exprArray.end());
+            exprArray.erase(exprArray.end() - 1);
             std::unique_ptr<ExprAST> E = std::make_unique<OpExprAST>(valueArray[currentIterator], std::move(LLHS), std::move(LHS));
             exprArray.push_back(std::move(E));
-            GetNextToken();
+            GetNextToken(); // eat operator.
         }
 
-        if(tokenArray[currentIterator] == tokenReturn)  {
+        else if(tokenArray[currentIterator] == tokenReturn)  {
             std::unique_ptr<ExprAST> E = std::move(exprArray.back());
 
             GetNextToken();
             return std::make_unique<ReturnExprAST>(std::move(E));
         }
 
-        if((result = ParsePrimary())) {
-            std::cout << "Hi" << "\n";
+        else if((result = ParsePrimary())) {
             exprArray.push_back(std::move(result));
-            GetNextToken();
         }
     }
+
+    GetNextToken();
 
     if(exprArray.empty())   {
         return nullptr;
@@ -182,8 +185,11 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
 }
 
 static std::unique_ptr<FunctionAST> ParseDefinition() {
-    std::string type = valueArray[currentIterator];
-    GetNextToken(); // eat type.
+    if(tokenArray[currentIterator] >= 12 || tokenArray[currentIterator] <= 0)    {
+        return nullptr;
+    }
+    std::string f = valueArray[currentIterator];
+    GetNextToken(); // eat function declare.
     auto proto = ParsePrototype();
     std::vector<std::unique_ptr<ExprAST>> E;
     std::unique_ptr<ReturnExprAST> returns;
@@ -211,10 +217,11 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
 
 static void HandleDefinition() {
     if (ParseDefinition()) {
-        std::cout << "Hi" << "\n";
+        std::cout << "function parsing..." << "\n";
     } else {
         // Skip token for error recovery.
         GetNextToken();
+        exit(0);
     }
 }
 

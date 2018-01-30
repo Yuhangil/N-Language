@@ -5,8 +5,8 @@ std::vector<int> tokenArray;
 
 std::regex pattern[patternSize] =
 {
-	std::regex("^-?\\d+"),
-	std::regex("^-?\\d+\\.\\d+"),
+	std::regex("-?\\d+[^.]"),
+	std::regex("-?\\d+\\.\\d+"),
 	std::regex("정수|실수"),
 	std::regex("정수형|실수형"),
 	std::regex("만약"),
@@ -20,7 +20,7 @@ std::regex pattern[patternSize] =
 };
 
 
-std::regex removePattern[6] =
+std::regex removePattern[] =
 {
 	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)([\\(])"),
 	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)(은|는|이|가|을|를|와|에)"),
@@ -28,6 +28,7 @@ std::regex removePattern[6] =
 	std::regex("([\\(]|[\\)])"),
 	std::regex("( )+|(있다)"),
 	std::regex("(더한|뺀|곱한|나눈)( )(값)"),
+	std::regex("([^\\d])(\\.)")
 };
 
 int StoreToken(std::ifstream &fileStream)	{
@@ -44,6 +45,7 @@ int StoreToken(std::ifstream &fileStream)	{
 	temporary = std::regex_replace(temporary, removePattern[3], std::string(" $1 "));
 	temporary = std::regex_replace(temporary, removePattern[4], std::string(" "));
     temporary = std::regex_replace(temporary, removePattern[5], std::string("$1") + "다");
+	temporary = std::regex_replace(temporary, removePattern[6], std::string("$1 $2 "));
 
 	original = temporary;
 
@@ -74,6 +76,12 @@ int StoreToken(std::ifstream &fileStream)	{
 		}
 		temp.clear();
 	}
+
+	for(int i = 0; i < valueArray.size(); ++i)	{
+		std::cout << tokenArray[i] << " : " << valueArray[i] << "\n";
+	}
+
+	std::cout << "=====" << "\n";
 
 	return 0;
 }
