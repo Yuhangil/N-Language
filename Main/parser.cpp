@@ -176,7 +176,11 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
         argNames.push_back(std::make_pair(type, valueArray[currentIterator]));    // fix
         GetNextToken(); // eat identifier
         if(valueArray[currentIterator] != ",")  {
+            if(valueArray[currentIterator] == ")")  {
+                break;
+            }   else    {
             return LogErrorP("Expected ',' in prototype");
+            }
         }
     }
     if (valueArray[currentIterator] != ")") {
