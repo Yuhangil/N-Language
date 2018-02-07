@@ -3,12 +3,12 @@
 
 unsigned int currentIterator = 0;
 
-std::unique_ptr<ExprAST> LogError(const char *string) {
-    std::cout << "LogError: " << string << "\n";
+std::unique_ptr<ExprAST> LogError(const char *Str) {
+    fprintf(stderr, "LogError: %s\n", Str);
     return nullptr;
 }
-std::unique_ptr<PrototypeAST> LogErrorP(const char *string) {
-    LogError(string);
+std::unique_ptr<PrototypeAST> LogErrorP(const char *Str) {
+    LogError(Str);
     return nullptr;
 }
 
@@ -149,7 +149,6 @@ static std::unique_ptr<ExprAST> ParseExpression(int mode) {
     if(exprArray.empty())   {
         return nullptr;
     }
-
     result = std::move(exprArray.back());
 
     return result;
@@ -166,18 +165,9 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
         return LogErrorP("Expected '(' in prototype");
     }
 
-    std::vector<std::pair<std::string, std::string>> argNames;
-    while (tokenArray[GetNextToken()] == tokenType)   {
-        std::string type = valueArray[currentIterator];
-        GetNextToken(); // eat type
-        if(tokenArray[currentIterator] != tokenIdentifier)  {
-            return LogErrorP("Expected id in prototype");
-        }
-        argNames.push_back(std::make_pair(type, valueArray[currentIterator]));    // fix
-        GetNextToken(); // eat identifier
-        if(valueArray[currentIterator] != ",")  {
-            return LogErrorP("Expected ',' in prototype");
-        }
+    std::vector<std::string> argNames;
+    while (tokenArray[GetNextToken()] == tokenIdentifier)   {
+        argNames.push_back(valueArray[currentIterator]);    // fix
     }
     if (valueArray[currentIterator] != ")") {
         return LogErrorP("Expected ')' in prototype");
@@ -186,7 +176,7 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
     // success.
     GetNextToken(); // eat ')'.
 
-    return std::make_unique<PrototypeAST>(functionName, std::move(argNames));
+    return std::make_unique<PrototypeAST>(functionName, argNames);
 }
 
 static std::unique_ptr<FunctionAST> ParseDefinition() {
@@ -197,6 +187,7 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
     GetNextToken(); // eat function declare.
     auto proto = ParsePrototype();
     std::vector<std::unique_ptr<ExprAST>> E;
+    std::unique_ptr<ReturnExprAST> returns;
     if (!proto) {
         return nullptr;
     }
@@ -204,6 +195,9 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
     GetNextToken(); //eat '{'.
 
     while (std::unique_ptr<ExprAST> V = ParseExpression(modeDot)) {
+        if(typeid(*V) == typeid(std::unique_ptr<ReturnExprAST>))   {
+            returns = std::make_unique<ReturnExprAST>(std::move(V));
+        }
         E.push_back(std::move(V));
     }
 
@@ -212,7 +206,7 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
     if(E.empty())   {
         return nullptr;
     } else  {
-        return std::make_unique<FunctionAST>(std::move(proto), std::move(E));
+        return std::make_unique<FunctionAST>(std::move(proto), std::move(E), std::move(returns));
     }
 }
 

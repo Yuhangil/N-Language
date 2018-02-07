@@ -75,7 +75,7 @@ public:
     IdentifierExprAST(const std::string &name) : name(name) {}
 
     //llvm::Value *codegen() override;
-    const std::string &getName() const { return name; }
+    //const std::string &getName() const { return name; }
 };
 
 /// VariableExprAST - Expression class for referencing a variable, like "a".
@@ -142,17 +142,18 @@ public:
 
 class PrototypeAST { 
 	std::string name; 
-	std::vector<std::pair<std::string, std::string>> args; 
+	std::vector<std::string> args; 
 public: 
-	PrototypeAST(const std::string &name, std::vector<std::pair<std::string, std::string>> args) : name(name), args(std::move(args)) {}
+	PrototypeAST(const std::string &name, std::vector<std::string> args) : name(name), args(std::move(args)) {}
     //llvm::Function* codegen();
 }; 
 
 class FunctionAST { 
 	std::unique_ptr<PrototypeAST> proto; 
 	std::vector<std::unique_ptr<ExprAST>> body; 
+	std::unique_ptr<ReturnExprAST> returns;
 public: 
-	FunctionAST(std::unique_ptr<PrototypeAST> proto, std::vector<std::unique_ptr<ExprAST>> body) : proto(std::move(proto)), body(std::move(body)) {}
+	FunctionAST(std::unique_ptr<PrototypeAST> proto, std::vector<std::unique_ptr<ExprAST>> body, std::unique_ptr<ReturnExprAST> returns) : proto(std::move(proto)), body(std::move(body)), returns(std::move(returns)) {}
     //llvm::Function* codegen();
 };
 
