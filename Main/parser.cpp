@@ -1,6 +1,12 @@
 #include "parser.hpp"
 #include "lexer.hpp"
 
+llvm::LLVMContext TheContext;
+llvm::IRBuilder<> Builder(TheContext);
+std::unique_ptr<llvm::Module> TheModule;
+std::map<std::string, llvm::Value *> NamedValues;
+std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
+
 unsigned int currentIterator = 0;
 
 std::unique_ptr<ExprAST> LogError(const char *string) {
@@ -222,6 +228,7 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
 
 static void HandleDefinition() {
     if (auto result = ParseDefinition()) {
+        result->codegen();
         std::cout << "function parsing..." << "\n";
     } else {
         exit(0);
@@ -233,6 +240,9 @@ int main(int argc, char** argv)	{
         std::cout << "error : no such input file" << "\n";
         exit(1);
     }
+
+    TheModule = llvm::make_unique<llvm::Module>("code sibal", TheContext);
+
     std::ifstream fileStream(argv[1]);
     StoreToken(fileStream);
     
