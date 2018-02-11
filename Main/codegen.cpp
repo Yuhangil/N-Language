@@ -1,10 +1,10 @@
 #include "parser.hpp"
 
-static std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
+extern std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
 extern llvm::LLVMContext TheContext;
 extern llvm::IRBuilder<> Builder;
 extern std::unique_ptr<llvm::Module> TheModule;
-extern std::map<std::string, llvm::Value *> NamedValues;
+extern std::map<std::string, llvm::AllocaInst *> NamedValues;
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 
 std::unique_ptr<ExprAST> LogError_(const char *Str) {
@@ -16,13 +16,9 @@ llvm::Value *LogErrorV(const char *Str) {
   LogError_(Str);
   return nullptr;
 }
-
-llvm::Value *NumberExprAST::codegen() {
-    return llvm::ConstantFP::get(TheContext, llvm::APFloat(value));
-}
-static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, const std::string &varName) {
+static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, const std::string &name) {
     llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
-    return TmpB.CreateAlloca(llvm::Type::getDoubleTy(TheContext), nullptr, varName);
+    return TmpB.CreateAlloca(llvm::Type::getDoubleTy(TheContext), nullptr, name);
 }
 
 llvm::Function *getFunction(std::string Name) {
@@ -34,6 +30,10 @@ llvm::Function *getFunction(std::string Name) {
         return FI->second->codegen();
 
     return nullptr;
+}
+
+llvm::Value *NumberExprAST::codegen() {
+    return llvm::ConstantFP::get(TheContext, llvm::APFloat(value));
 }
 
 llvm::Value * CallExprAST::codegen() {
@@ -103,52 +103,19 @@ llvm::Function * FunctionAST::codegen() {
 
 llvm::Value * DeclareExprAST::codegen(){
     std::vector<llvm::AllocaInst *> OldBindings;
-
     llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
+    llvm::Value *InitVal = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
+    llvm::AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, name);
 
-    // Register all variables and emit their initializer.
-    for (unsigned i = 0, e = varNames.size(); i != e; ++i) {
-      const std::string &varName = varNames[i].first;
-      ExprAST *Init = varNames[i].second.get();
+    // Remember the old variable binding so that we can restore the binding when
+    // we unrecurse.
+    OldBindings.push_back(NamedValues[name]);
+    Builder.CreateStore(InitVal, Alloca);
 
-      // Emit the initializer before adding the variable to scope, this prevents
-      // the initializer from referencing the variable itself, and permits stuff
-      // like this:
-      //  var a = 1 in
-      //    var a = a in ...   # refers to outer 'a'.
-      llvm::Value *InitVal;
-      if (Init) {
-        InitVal = Init->codegen();
-        if (!InitVal)
-          return nullptr;
-      } else { // If not specified, use 0.0.
-        InitVal = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
-      }
-
-      llvm::AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, varName);
-      Builder.CreateStore(InitVal, Alloca);
-
-      // Remember the old variable binding so that we can restore the binding when
-      // we unrecurse.
-      OldBindings.push_back(NamedValues[varName]);
-
-      // Remember this binding.
-      NamedValues[varName] = Alloca;
-    }
+    // Remember this binding.
+    NamedValues[name] = Alloca;
 
     return nullptr;
-
-    // // Codegen the body, now that all vars are in scope.
-    // Value *BodyVal = Body->codegen();
-    // if (!BodyVal)
-    //   return nullptr;
-
-    // // Pop all our variables from scope.
-    // for (unsigned i = 0, e = varNames.size(); i != e; ++i)
-    //   NamedValues[varNames[i].first] = OldBindings[i];
-
-    // // Return the body computation.
-    // return BodyVal;
 }
 
 llvm::Value * ReturnExprAST::codegen(){
@@ -190,13 +157,21 @@ llvm::Value * OpExprAST::codegen(){
         return nullptr;
     
     if(Op.compare("더한다")){
-        return Builder.CreateFAdd(LL, L, "addtmp");
+        return Builder.CreateStore(LL, Builder.CreateFAdd(LL, L, "addstore"));
     } else if(Op.compare("뺀다")){
-        return Builder.CreateFSub(LL, L, "subtmp");
+        return Builder.CreateStore(LL, Builder.CreateFSub(LL, L, "substore"));
     } else if(Op.compare("곱한다")){
-        return Builder.CreateFMul(LL, L, "multmp");
+        return Builder.CreateStore(LL, Builder.CreateFMul(LL, L, "mulstore"));
     } else if(Op.compare("나눈다")){
-        return Builder.CreateFDiv(LL, L, "divtmp");
+        return Builder.CreateStore(LL, Builder.CreateFDiv(LL, L, "divstore"));
+    } else if(Op.compare("더한")) {
+        return Builder.CreateFAdd(LL, L, "add");
+    } else if(Op.compare("뺀"))  {
+        return Builder.CreateFSub(LL, L, "sub");
+    } else if(Op.compare("곱한")) {
+        return Builder.CreateFMul(LL, L, "mul");
+    } else if(Op.compare("나눈")) {
+        return Builder.CreateFDiv(LL, L, "div");
     }
 
     return LogErrorV("invalid binary operator");

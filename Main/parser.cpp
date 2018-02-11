@@ -1,6 +1,7 @@
 #include "parser.hpp"
 #include "lexer.hpp"
 
+std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
 llvm::LLVMContext TheContext;
 llvm::IRBuilder<> Builder(TheContext);
 std::unique_ptr<llvm::Module> TheModule;
@@ -80,23 +81,9 @@ static std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 
 static std::unique_ptr<ExprAST> ParseTypeExpr() {
     std::string type = valueArray[currentIterator];
-    std::string idName = valueArray[GetNextToken()];
-    std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> varNames;
-
-    // At least one variable name is required.
-    if (tokenArray[currentIterator] != tokenIdentifier) {
-        return LogError("expected identifier after var");
-    } // eat identifier.
-
-    std::unique_ptr<ExprAST> initializer = nullptr;
-
-    initializer = ParseExpression(modeDot);
-
+    std::string name = valueArray[GetNextToken()];
     GetNextToken();
-
-    varNames.push_back(std::make_pair(idName, std::move(initializer)));
-
-    return std::make_unique<DeclareExprAST>(std::move(type), std::move(varNames));
+    return std::make_unique<DeclareExprAST>(type, name);
 }
 
 static std::unique_ptr<ExprAST> ParsePrimary() {
@@ -128,16 +115,17 @@ static std::unique_ptr<ExprAST> ParseExpression(int mode) {
     }
 
     while(valueArray[currentIterator] != condition)    {
-        if(tokenArray[currentIterator] == tokenOperator)    {
+        if(tokenArray[currentIterator] == tokenExist)   {
+            GetNextToken();
+        }
+        else if(tokenArray[currentIterator] == tokenOperator)    {
             std::unique_ptr<ExprAST> LLHS = std::move(exprArray.back());
             exprArray.erase(exprArray.end() - 1);
             std::unique_ptr<ExprAST> LHS = std::move(exprArray.back());
             exprArray.erase(exprArray.end() - 1);
-            std::unique_ptr<ExprAST> E = std::make_unique<OpExprAST>(valueArray[currentIterator], std::move(LLHS), std::move(LHS));
-            exprArray.push_back(std::move(E));
+            exprArray.push_back(std::make_unique<OpExprAST>(valueArray[currentIterator], std::move(LLHS), std::move(LHS)));
             GetNextToken(); // eat operator.
         }
-
         else if(tokenArray[currentIterator] == tokenReturn)  {
             std::unique_ptr<ExprAST> E = std::move(exprArray.back());
 
@@ -150,7 +138,9 @@ static std::unique_ptr<ExprAST> ParseExpression(int mode) {
         }
     }
 
-    GetNextToken();
+    if(tokenArray[currentIterator] == tokenPunctuation) {
+        GetNextToken(); // eat punctuation
+    }
 
     if(exprArray.empty())   {
         return nullptr;
@@ -200,7 +190,7 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
 }
 
 static std::unique_ptr<FunctionAST> ParseDefinition() {
-    if(tokenArray[currentIterator] >= 12 || tokenArray[currentIterator] <= 0)    {
+    if(tokenArray[currentIterator] > 13 || tokenArray[currentIterator] <= 0)    {
         return nullptr;
     }
     std::string f = valueArray[currentIterator];
@@ -228,8 +218,8 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
 
 static void HandleDefinition() {
     if (auto result = ParseDefinition()) {
-        result->codegen();
-        std::cout << "function parsing..." << "\n";
+        auto functionCode = result->codegen();
+        functionCode->print(llvm::errs());
     } else {
         exit(0);
     }
@@ -242,6 +232,22 @@ int main(int argc, char** argv)	{
     }
 
     TheModule = llvm::make_unique<llvm::Module>("code sibal", TheContext);
+
+    // Create a new pass manager attached to it.
+    TheFPM = llvm::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
+
+    // Promote allocas to registers.
+    TheFPM->add(llvm::createPromoteMemoryToRegisterPass());
+    // Do simple "peephole" optimizations and bit-twiddling optzns.
+    TheFPM->add(llvm::createInstructionCombiningPass());
+    // Reassociate expressions.
+    TheFPM->add(llvm::createReassociatePass());
+    // Eliminate Common SubExpressions.
+    TheFPM->add(llvm::createGVNPass());
+    // Simplify the control flow graph (deleting unreachable blocks, etc).
+    TheFPM->add(llvm::createCFGSimplificationPass());
+
+    TheFPM->doInitialization();
 
     std::ifstream fileStream(argv[1]);
     StoreToken(fileStream);

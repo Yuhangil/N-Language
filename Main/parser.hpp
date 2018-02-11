@@ -37,14 +37,15 @@ enum Token    {
     tokenDouble = 2,
     tokenType = 3,
 	tokenReturnType = 4,
-	tokenIf = 5,
+    tokenIf = 5,
 	tokenElse = 6,
-	tokenReturn = 7,
-	tokenWhile = 8,
+	tokenOperator = 7,
+	tokenReturn = 8,
 	tokenBreak = 9,
-	tokenOperator = 10,
-	tokenIdentifier = 11,
-	tokenPunctuation = 12
+    tokenWhile = 10,
+    tokenExist = 11,
+	tokenIdentifier = 12,
+	tokenPunctuation = 13
 };
 
 enum Mode   {
@@ -69,9 +70,9 @@ public:
 };
 
 class IdentifierExprAST : public ExprAST    {
-    std::string name;
 
 public:
+    std::string name;
     IdentifierExprAST(const std::string &name) : name(name) {}
 
     llvm::Value *codegen() override;
@@ -81,10 +82,10 @@ public:
 /// VariableExprAST - Expression class for referencing a variable, like "a".
 class DeclareExprAST : public ExprAST {
     std::string type;
-    std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> varNames;
+    std::string name;
 
 public:
-    DeclareExprAST(const std::string &type, std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> varNames) : type(type), varNames(std::move(varNames)) {}
+    DeclareExprAST(const std::string &type, const std::string &name) : type(type), name(name) {}
 
     llvm::Value *codegen() override;
 };
