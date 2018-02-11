@@ -105,15 +105,15 @@ llvm::Value * DeclareExprAST::codegen(){
     std::vector<llvm::AllocaInst *> OldBindings;
     llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
     llvm::Value *InitVal = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
-    llvm::AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, name);
+    llvm::AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, getName());
 
     // Remember the old variable binding so that we can restore the binding when
     // we unrecurse.
-    OldBindings.push_back(NamedValues[name]);
+    OldBindings.push_back(NamedValues[getName()]);
     Builder.CreateStore(InitVal, Alloca);
 
     // Remember this binding.
-    NamedValues[name] = Alloca;
+    NamedValues[getName()] = Alloca;
 
     return nullptr;
 }
@@ -128,51 +128,65 @@ llvm::Value * ReturnExprAST::codegen(){
 }
 
 llvm::Value * IdentifierExprAST::codegen(){
-    llvm::Value *V = NamedValues[name];
+    llvm::Value *V = NamedValues[getName()];
     if (!V)
         return LogErrorV("Unknown variable name");
 
   // Load the value.
-    return Builder.CreateLoad(V, name.c_str());
+    return Builder.CreateLoad(V, getName().c_str());
 }
 
 llvm::Value * OpExprAST::codegen(){
-    if(Op.compare("이다")){
-        IdentifierExprAST * LHSE = static_cast<IdentifierExprAST *>(LLHS.get());
-        if(!LHSE)
+    if(Op == "이다"){
+        VariableExprAST* LLHSE = static_cast<VariableExprAST *>(LLHS.get());
+        if(typeid(*LLHS) == typeid(DeclareExprAST))  {
+            LLHS->codegen();
+        }
+        if(!LLHSE)
             return LogErrorV("destination of '=' must be a variable");
         llvm::Value * Val = LHS->codegen();
         if(!Val)
             return nullptr;
-        llvm::Value * Variable = NamedValues[LHSE->getName()];
-        if (!Variable)
+        llvm::Value *Variable = NamedValues[LLHSE->getName()];
+        if (!Variable)  {
             return LogErrorV("Unknown variable name");
+        }
         Builder.CreateStore(Val, Variable);
         return Val;
     }
 
     llvm::Value *LL = LLHS->codegen();
     llvm::Value *L = LHS->codegen();
-    if (!L || !LL)
+    if(!LL || !L)  {
         return nullptr;
-    
-    if(Op.compare("더한다")){
-        return Builder.CreateStore(LL, Builder.CreateFAdd(LL, L, "addstore"));
-    } else if(Op.compare("뺀다")){
-        return Builder.CreateStore(LL, Builder.CreateFSub(LL, L, "substore"));
-    } else if(Op.compare("곱한다")){
-        return Builder.CreateStore(LL, Builder.CreateFMul(LL, L, "mulstore"));
-    } else if(Op.compare("나눈다")){
-        return Builder.CreateStore(LL, Builder.CreateFDiv(LL, L, "divstore"));
-    } else if(Op.compare("더한")) {
-        return Builder.CreateFAdd(LL, L, "add");
-    } else if(Op.compare("뺀"))  {
-        return Builder.CreateFSub(LL, L, "sub");
-    } else if(Op.compare("곱한")) {
-        return Builder.CreateFMul(LL, L, "mul");
-    } else if(Op.compare("나눈")) {
-        return Builder.CreateFDiv(LL, L, "div");
     }
 
-    return LogErrorV("invalid binary operator");
+    llvm::Value *val;
+    
+    if(Op == "더한다"){
+        val = Builder.CreateFAdd(LL, L, "addstore");
+    } else if(Op == "뺀다"){
+        val = Builder.CreateFSub(LL, L, "substore");
+    } else if(Op == "곱한다"){
+        val = Builder.CreateFMul(LL, L, "mulstore");
+    } else if(Op == "나눈다"){
+        val = Builder.CreateFDiv(LL, L, "divstore");
+    } else if(Op == "더한") {
+        val = Builder.CreateFAdd(LL, L, "add");
+    } else if(Op == "뺀")  {
+        val = Builder.CreateFSub(LL, L, "sub");
+    } else if(Op == "곱한") {
+        val = Builder.CreateFMul(LL, L, "mul");
+    } else if(Op == "나눈") {
+        val = Builder.CreateFDiv(LL, L, "div");
+    } else  {
+        return LogErrorV("invalid binary operator");
+    }
+
+    if(typeid(*LLHS) == typeid(DeclareExprAST) || typeid(*LLHS) == typeid(IdentifierExprAST))   {
+        VariableExprAST* LLHSE = static_cast<VariableExprAST *>(LLHS.get());
+        Builder.CreateStore(val, NamedValues[LLHSE->getName()]);
+    }
+
+    return nullptr;
 }

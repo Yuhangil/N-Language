@@ -7,8 +7,8 @@ std::regex pattern[patternSize] =
 {
 	std::regex("-?\\d+[^.]"),
 	std::regex("-?\\d+\\.\\d+"),
-	std::regex("정수|실수"),
 	std::regex("정수형|실수형"),
+	std::regex("정수|실수"),
 	std::regex("만약"),
 	std::regex("아니면"),
 	std::regex("(더한다|뺀다|곱한다|나눈다|이다|더한|뺀|곱한|나눈)"),
@@ -24,12 +24,12 @@ std::regex pattern[patternSize] =
 std::regex removePattern[] =
 {
 	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)([\\(])"),
-	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)(은|는|이|가|을|를|와|과|에)"),
 	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*|-?\\d+\\.?\\d*)(이다\\.)"),
+	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*|-?\\d+\\.?\\d*)(은|는|이|가|을|를|와|과|에)"),
 	std::regex("([\\(]|[\\)]|[\\,])"),
 	std::regex("( )+"),
 	std::regex("(더한|뺀|곱한|나눈)( )(값)"),
-	std::regex("([^\\d])(\\.)"),
+	std::regex("([^\\d])(\\.)")
 };
 
 int StoreToken(std::ifstream &fileStream)	{
@@ -41,8 +41,8 @@ int StoreToken(std::ifstream &fileStream)	{
 	temporary = stringStream.str();
 
 	temporary = std::regex_replace(temporary, removePattern[0], std::string("$1 $2"));
-	temporary = std::regex_replace(temporary, removePattern[1], std::string("$1"));
-    temporary = std::regex_replace(temporary, removePattern[2], std::string("$1 $2"));
+    temporary = std::regex_replace(temporary, removePattern[1], std::string("$1 $2"));
+	temporary = std::regex_replace(temporary, removePattern[2], std::string("$1"));
 	temporary = std::regex_replace(temporary, removePattern[3], std::string(" $1 "));
 	temporary = std::regex_replace(temporary, removePattern[4], std::string(" "));
     temporary = std::regex_replace(temporary, removePattern[5], std::string("$1"));

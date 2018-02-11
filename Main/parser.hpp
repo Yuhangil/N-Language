@@ -14,7 +14,13 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Target/TargetOptions.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
@@ -35,8 +41,8 @@
 enum Token    {
     tokenInteger = 1,
     tokenDouble = 2,
-    tokenType = 3,
-	tokenReturnType = 4,
+	tokenReturnType = 3,
+    tokenType = 4,
     tokenIf = 5,
 	tokenElse = 6,
 	tokenOperator = 7,
@@ -59,6 +65,16 @@ public:
     virtual ~ExprAST() = default;
 };
 
+class VariableExprAST : public ExprAST  {
+    std::string name;
+public:
+
+    VariableExprAST(const std::string &name) : name(name) {}
+
+    virtual llvm::Value *codegen() = 0;
+    const std::string &getName() const { return name; }
+};
+
 class NumberExprAST : public ExprAST    {
     std::string type;
     double value;
@@ -69,23 +85,19 @@ public:
     llvm::Value* codegen() override;
 };
 
-class IdentifierExprAST : public ExprAST    {
-
+class IdentifierExprAST : public VariableExprAST    {
 public:
-    std::string name;
-    IdentifierExprAST(const std::string &name) : name(name) {}
+    IdentifierExprAST(const std::string &name) : VariableExprAST(name) {}
 
     llvm::Value *codegen() override;
-    const std::string &getName() const { return name; }
 };
 
 /// VariableExprAST - Expression class for referencing a variable, like "a".
-class DeclareExprAST : public ExprAST {
+class DeclareExprAST : public VariableExprAST {
     std::string type;
-    std::string name;
 
 public:
-    DeclareExprAST(const std::string &type, const std::string &name) : type(type), name(name) {}
+    DeclareExprAST(const std::string &name, const std::string &type) : VariableExprAST(name), type(type) {}
 
     llvm::Value *codegen() override;
 };
