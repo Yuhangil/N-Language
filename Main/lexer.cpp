@@ -25,11 +25,12 @@ std::regex removePattern[] =
 {
 	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*)([\\(])"),
 	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*|-?\\d+\\.?\\d*)(이다\\.)"),
-	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*|-?\\d+\\.?\\d*)(은|는|이|가|을|를|와|과|에)"),
+	std::regex("([a-zA-Z_가-힣][a-zA-Z_가-힣0-9]*|-?\\d+\\.?\\d*|[\\)])(은|는|이|가|을|를|와|과|에)"),
 	std::regex("([\\(]|[\\)]|[\\,])"),
 	std::regex("( )+"),
 	std::regex("(더한|뺀|곱한|나눈)( )(값)"),
-	std::regex("([^\\d])(\\.)")
+	std::regex("([^\\d])(\\.)"),
+	std::regex("핵심함수")
 };
 
 int StoreToken(std::ifstream &fileStream)	{
@@ -47,6 +48,7 @@ int StoreToken(std::ifstream &fileStream)	{
 	temporary = std::regex_replace(temporary, removePattern[4], std::string(" "));
     temporary = std::regex_replace(temporary, removePattern[5], std::string("$1"));
 	temporary = std::regex_replace(temporary, removePattern[6], std::string("$1 $2 "));
+	temporary = std::regex_replace(temporary, removePattern[7], std::string("main"));
 
 	original = temporary;
 

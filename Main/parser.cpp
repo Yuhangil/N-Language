@@ -99,8 +99,8 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
     //    return ParseIfExpr();
     //case tokenWhile:
     //    return ParseForExpr();
-    default:
-        return LogError("unknown token when expecting an expression");
+    //default:
+        //return LogError("unknown token when expecting an expression");
     }
 }
 
@@ -115,6 +115,9 @@ static std::unique_ptr<ExprAST> ParseExpression(int mode) {
     }
 
     while(valueArray[currentIterator] != condition)    {
+        if(valueArray[currentIterator] == ",")  {
+            break;
+        }
         if(tokenArray[currentIterator] == tokenExist)   {
             GetNextToken();
         }
@@ -138,7 +141,7 @@ static std::unique_ptr<ExprAST> ParseExpression(int mode) {
         }
     }
 
-    if(tokenArray[currentIterator] == tokenPunctuation) {
+    if(valueArray[currentIterator] == ".") {
         GetNextToken(); // eat punctuation
     }
 

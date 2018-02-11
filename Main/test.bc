@@ -1,22 +1,3 @@
-define double @main(double %a, double %b) {
-entry:
-  %m = alloca double
-  %n = alloca double
-  %b2 = alloca double
-  %a1 = alloca double
-  store double %a, double* %a1
-  store double %b, double* %b2
-  store double 0.000000e+00, double* %n
-  store double 0.000000e+00, double* %m
-  store double 4.500000e+00, double* %m
-  %n3 = load double, double* %n
-  %m4 = load double, double* %m
-  %addstore = fadd double %n3, %m4
-  store double %addstore, double* %n
-  %n5 = load double, double* %n
-  ret double %n5
-}
-
 define double @"\ED\95\9C\EA\B8\B8"(double %"\EC\8B\9C", double %"\EB\B0\9C") {
 entry:
   %"\EC\A7\81" = alloca double
@@ -34,4 +15,25 @@ entry:
   store double %addstore, double* %"\EC\9D\B8"
   %"\EC\8B\9C5" = load double, double* %"\EC\8B\9C1"
   ret double %"\EC\8B\9C5"
+}
+
+define double @"\ED\98\B8\EC\B6\9C"(double %a, double %b) {
+entry:
+  %m = alloca double
+  %n = alloca double
+  %b2 = alloca double
+  %a1 = alloca double
+  store double %a, double* %a1
+  store double %b, double* %b2
+  store double 0.000000e+00, double* %n
+  store double 0.000000e+00, double* %m
+  store double 5.000000e+00, double* %m
+  %n3 = load double, double* %n
+  %m4 = load double, double* %m
+  %n5 = load double, double* %n
+  %calltmp = call double @"\ED\95\9C\EA\B8\B8"(double %m4, double %n5)
+  %addstore = fadd double %n3, %calltmp
+  store double %addstore, double* %n
+  %n6 = load double, double* %n
+  ret double %n6
 }
