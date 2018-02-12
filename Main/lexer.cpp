@@ -14,11 +14,12 @@ int StoreToken(std::ifstream &fileStream)	{
 	temporary = std::regex_replace(temporary, removePattern[0], std::string("$1 $2"));
     temporary = std::regex_replace(temporary, removePattern[1], std::string("$1 $2"));
 	temporary = std::regex_replace(temporary, removePattern[2], std::string("$1"));
-	temporary = std::regex_replace(temporary, removePattern[3], std::string(" $1 "));
-	temporary = std::regex_replace(temporary, removePattern[4], std::string(" "));
-    temporary = std::regex_replace(temporary, removePattern[5], std::string("$1"));
-	temporary = std::regex_replace(temporary, removePattern[6], std::string("$1 $2 "));
-	temporary = std::regex_replace(temporary, removePattern[7], std::string("main"));
+	temporary = std::regex_replace(temporary, removePattern[3], std::string("$1 $2"));
+	temporary = std::regex_replace(temporary, removePattern[4], std::string(" $1 "));
+	temporary = std::regex_replace(temporary, removePattern[5], std::string(" "));
+    temporary = std::regex_replace(temporary, removePattern[6], std::string("$1"));
+	temporary = std::regex_replace(temporary, removePattern[7], std::string("$1 $2 "));
+	temporary = std::regex_replace(temporary, removePattern[8], std::string("main"));
 
 	original = temporary;
 

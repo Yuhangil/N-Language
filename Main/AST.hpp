@@ -7,17 +7,6 @@ public:
     virtual ~ExprAST() = default;
 };
 
-class VariableExprAST : public ExprAST  {
-    std::string name;
-
-public:
-
-    VariableExprAST(const std::string &name) : name(name) {}
-
-    virtual llvm::Value *codegen() = 0;
-    const std::string &getName() const { return name; }
-};
-
 class NumberExprAST : public ExprAST    {
     std::string type;
     double value;
@@ -28,11 +17,21 @@ public:
     llvm::Value* codegen() override;
 };
 
+class VariableExprAST : public ExprAST  {
+    std::string name;
+
+public:
+    VariableExprAST(const std::string &name) : name(name) {}
+
+    virtual llvm::Value* codegen() = 0;
+    const std::string &getName() const { return name; }
+};
+
 class IdentifierExprAST : public VariableExprAST    {
 public:
     IdentifierExprAST(const std::string &name) : VariableExprAST(name) {}
 
-    llvm::Value *codegen() override;
+    llvm::Value* codegen() override;
 };
 
 class DeclareExprAST : public VariableExprAST {
@@ -41,43 +40,27 @@ class DeclareExprAST : public VariableExprAST {
 public:
     DeclareExprAST(const std::string &name, const std::string &type) : VariableExprAST(name), type(type) {}
 
-    llvm::Value *codegen() override;
+    llvm::Value* codegen() override;
 };
-
-/// IfExprAST - Expression class for if/then/else.
-// class IfExprAST : public ExprAST {
-//     std::unique_ptr<ExprAST> Cond, Then, Else;
-
-// public:
-//     IfExprAST(std::unique_ptr<ExprAST> Cond, std::unique_ptr<ExprAST> Then,
-//                         std::unique_ptr<ExprAST> Else)
-//             : Cond(std::move(Cond)), Then(std::move(Then)), Else(std::move(Else)) {}
-
-//     llvm::Value *codegen() override;
-// };
-
-/// ForExprAST - Expression class for for/in.
-// class ForExprAST : public ExprAST {
-//     std::string VarName;
-//     std::unique_ptr<ExprAST> Start, End, Step, Body;
-
-// public:
-//     ForExprAST(const std::string &VarName, std::unique_ptr<ExprAST> Start,
-//                          std::unique_ptr<ExprAST> End, std::unique_ptr<ExprAST> Step,
-//                          std::unique_ptr<ExprAST> Body)
-//             : VarName(VarName), Start(std::move(Start)), End(std::move(End)),
-//                 Step(std::move(Step)), Body(std::move(Body)) {}
-
-//     llvm::Value *codegen() override;
-// };
 
 class OpExprAST : public ExprAST	{
 	std::string Op;
 	std::unique_ptr<ExprAST> LLHS, LHS;
 
 public:
-	OpExprAST(std::string Op, std::unique_ptr<ExprAST> LLHS, std::unique_ptr<ExprAST> LHS) : Op(Op), LLHS(std::move(LLHS)), LHS(std::move(LHS)) {}
-    llvm::Value *codegen() override;
+	OpExprAST(std::string Op, std::unique_ptr<ExprAST> LLHS, std::unique_ptr<ExprAST> LHS) 
+        : Op(Op), LLHS(std::move(LLHS)), LHS(std::move(LHS)) {}
+
+    llvm::Value* codegen() override;
+};
+
+class ReturnExprAST : public ExprAST	{
+	std::unique_ptr<ExprAST> Return;
+
+public:
+	ReturnExprAST(std::unique_ptr<ExprAST> Return) : Return(std::move(Return))	{}
+
+    llvm::Value* codegen() override;
 };
 
 class CallExprAST : public ExprAST { 
@@ -85,33 +68,55 @@ class CallExprAST : public ExprAST {
 	std::vector<std::unique_ptr<ExprAST>> args; 
 
 public: 
-	CallExprAST(const std::string &callee, std::vector<std::unique_ptr<ExprAST>> args) : callee(callee), args(std::move(args)) {} 
-    llvm::Value *codegen() override;
+	CallExprAST(const std::string &callee, std::vector<std::unique_ptr<ExprAST>> args) 
+        : callee(callee), args(std::move(args)) {} 
+
+    llvm::Value* codegen() override;
 };
 
-class ReturnExprAST : public ExprAST	{
-	std::unique_ptr<ExprAST> returns;
+class IfExprAST : public ExprAST {
+    std::unique_ptr<ExprAST> Condition;
+    std::vector<std::unique_ptr<ExprAST>> Then, Else;
 
 public:
-	ReturnExprAST(std::unique_ptr<ExprAST> returns) : returns(std::move(returns))	{}
-    llvm::Value *codegen() override;
+    IfExprAST(std::unique_ptr<ExprAST> Condition, std::vector<std::unique_ptr<ExprAST>> Then, std::vector<std::unique_ptr<ExprAST>> Else)
+        : Condition(std::move(Condition)), Then(std::move(Then)), Else(std::move(Else)) {}
+
+    llvm::Value* codegen() override;
+};
+
+class WhileExprAST : public ExprAST { 
+    std::unique_ptr<ExprAST> Condition;
+    std::vector<std::unique_ptr<ExprAST>> Body;
+
+public:
+    WhileExprAST(std::unique_ptr<ExprAST> Condition, std::vector<std::unique_ptr<ExprAST>> Body)
+        : Condition(std::move(Condition)), Body(std::move(Body)) {}
+
+    llvm::Value* codegen() override;
 };
 
 class PrototypeAST { 
 	std::string name; 
-	std::vector<std::pair<std::string, std::string>> args; 
+	std::vector<std::pair<std::string, std::string>> Args; 
     
 public: 
-	PrototypeAST(const std::string &name, std::vector<std::pair<std::string, std::string>> args) : name(name), args(std::move(args)) {}
+	PrototypeAST(const std::string &name, std::vector<std::pair<std::string, std::string>> Args) 
+        : name(name), Args(std::move(Args)) {}
+
     llvm::Function* codegen();
     const std::string &getName() const { return name; }
 }; 
 
 class FunctionAST { 
-public: 
-	std::unique_ptr<PrototypeAST> proto;
-	std::vector<std::unique_ptr<ExprAST>> body;
-	FunctionAST(std::unique_ptr<PrototypeAST> proto, std::vector<std::unique_ptr<ExprAST>> body) : proto(std::move(proto)), body(std::move(body)) {}
+    std::string type;
+	std::unique_ptr<PrototypeAST> Proto;
+	std::vector<std::unique_ptr<ExprAST>> Body;
+
+public:
+	FunctionAST(std::string type, std::unique_ptr<PrototypeAST> Proto, std::vector<std::unique_ptr<ExprAST>> Body) 
+        : type(type), Proto(std::move(Proto)), Body(std::move(Body)) {}
+
     llvm::Function* codegen();
 };
 

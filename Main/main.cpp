@@ -58,8 +58,8 @@ int main(int argc, char** argv)	{
     TheFPM->doInitialization();
 
 
-    //f.open("output.bc", std::fstream::out | std::fstream::trunc);
-    //f.close();
+    f.open("output.bc", std::fstream::out | std::fstream::trunc);
+    f.close();
     
     while(true) {
         if(HandleDefinition() == -1)    {

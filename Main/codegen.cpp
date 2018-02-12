@@ -8,17 +8,20 @@ std::map<std::string, llvm::AllocaInst *> NamedValues;
 std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 
 static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, const std::string &name) {
-    llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
-    return TmpB.CreateAlloca(llvm::Type::getDoubleTy(TheContext), nullptr, name);
+    llvm::IRBuilder<> EntryBlock(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
+    return EntryBlock.CreateAlloca(llvm::Type::getDoubleTy(TheContext), nullptr, name);
 }
 
 llvm::Function *getFunction(std::string Name) {
-    if (auto * F = TheModule->getFunction(Name))    {
+    if (auto* F = TheModule->getFunction(Name))    {
         return F;
     }
+
     auto FI = FunctionProtos.find(Name);
-    if (FI != FunctionProtos.end())
+
+    if (FI != FunctionProtos.end()) {
         return FI->second->codegen();
+    }
 
     return nullptr;
 }
@@ -27,104 +30,33 @@ llvm::Value *NumberExprAST::codegen() {
     return llvm::ConstantFP::get(TheContext, llvm::APFloat(value));
 }
 
-llvm::Value * CallExprAST::codegen() {
-    llvm::Function * CalleeF = getFunction(callee);
-    if(!CalleeF)
-        return LogErrorV("-1");
-    if(CalleeF->arg_size() != args.size())
-        return LogErrorV("-1");
-    
-    std::vector<llvm::Value *> ArgsV;
-
-    for(int i = 0, e = args.size(); i != e; ++i){
-        ArgsV.push_back(args[i]->codegen());
-        if(!ArgsV.back())
-            return nullptr;
-    }
-    return Builder.CreateCall(CalleeF, ArgsV, "calltmp");
-}
-
-llvm::Function * PrototypeAST::codegen() {
-    std::vector<llvm::Type *> Doubles(args.size(), llvm::Type::getDoubleTy(TheContext));
-    llvm::FunctionType * FT = llvm::FunctionType::get(llvm::Type::getDoubleTy(TheContext), Doubles, false);
-    llvm::Function * F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, TheModule.get());
-
-    unsigned Idx = 0;
-    for (auto &Arg : F->args())
-        Arg.setName(args[Idx++].second);
-    
-    return F;
-}
-
-llvm::Function * FunctionAST::codegen() {
-    auto &P = *proto;
-    FunctionProtos[proto->getName()] = std::move(proto);
-    llvm::Function * TheFunction = getFunction(P.getName());
-
-    if(!TheFunction)
-        return nullptr;
-    
-    if(!TheFunction->empty())
-        return (llvm::Function *)LogErrorV("Function cannot be redefined.");
-    
-    llvm::BasicBlock * BB = llvm::BasicBlock::Create(TheContext, "entry", TheFunction);
-    Builder.SetInsertPoint(BB); //end
-
-    NamedValues.clear();
-
-    for(auto & Arg : TheFunction->args()){ 
-        llvm::AllocaInst * Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
-        Builder.CreateStore(&Arg, Alloca);
-        NamedValues[Arg.getName()] = Alloca;
-    }
-    
-    for(auto & Body : body){
-        Body->codegen();
-    }
-
-    if(body.empty())    {
-        TheFunction->eraseFromParent();
-        return nullptr;
-    }
-
-    verifyFunction(*TheFunction);
-    TheFPM->run(*TheFunction);
-    return TheFunction;
-}
-
 llvm::Value * DeclareExprAST::codegen(){
-    std::vector<llvm::AllocaInst *> OldBindings;
-    llvm::Function *TheFunction = Builder.GetInsertBlock()->getParent();
-    llvm::Value *InitVal = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
-    llvm::AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, getName());
+    llvm::Function *theFunction = Builder.GetInsertBlock()->getParent();
+    llvm::Value *initValue = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
+    llvm::AllocaInst *alloca = CreateEntryBlockAlloca(theFunction, getName());
 
-    // Remember the old variable binding so that we can restore the binding when
-    // we unrecurse.
-    OldBindings.push_back(NamedValues[getName()]);
-    Builder.CreateStore(InitVal, Alloca);
-
-    // Remember this binding.
-    NamedValues[getName()] = Alloca;
+    Builder.CreateStore(initValue, alloca);
+    NamedValues[getName()] = alloca;
 
     return nullptr;
+}
+
+llvm::Value * IdentifierExprAST::codegen(){
+    llvm::Value *value = NamedValues[getName()];
+    if (!value) {
+        return LogErrorV("Unknown variable name");
+    }
+
+    return Builder.CreateLoad(value, getName().c_str());
 }
 
 llvm::Value * ReturnExprAST::codegen(){
     llvm::Value* value;
 
-    value = returns->codegen();
+    value = Return->codegen();
     Builder.CreateRet(value);
 
     return value;
-}
-
-llvm::Value * IdentifierExprAST::codegen(){
-    llvm::Value *V = NamedValues[getName()];
-    if (!V)
-        return LogErrorV("Unknown variable name");
-
-  // Load the value.
-    return Builder.CreateLoad(V, getName().c_str());
 }
 
 llvm::Value * OpExprAST::codegen(){
@@ -152,32 +84,193 @@ llvm::Value * OpExprAST::codegen(){
         return nullptr;
     }
 
-    llvm::Value *val;
+    llvm::Value *value;
     
     if(Op == "더한다"){
-        val = Builder.CreateFAdd(LL, L, "addstore");
+        value = Builder.CreateFAdd(LL, L, "addstore");
     } else if(Op == "뺀다"){
-        val = Builder.CreateFSub(LL, L, "substore");
+        value = Builder.CreateFSub(LL, L, "substore");
     } else if(Op == "곱한다"){
-        val = Builder.CreateFMul(LL, L, "mulstore");
+        value = Builder.CreateFMul(LL, L, "mulstore");
     } else if(Op == "나눈다"){
-        val = Builder.CreateFDiv(LL, L, "divstore");
+        value = Builder.CreateFDiv(LL, L, "divstore");
     } else if(Op == "더한") {
-        val = Builder.CreateFAdd(LL, L, "add");
+        value = Builder.CreateFAdd(LL, L, "add");
     } else if(Op == "뺀")  {
-        val = Builder.CreateFSub(LL, L, "sub");
+        value = Builder.CreateFSub(LL, L, "sub");
     } else if(Op == "곱한") {
-        val = Builder.CreateFMul(LL, L, "mul");
+        value = Builder.CreateFMul(LL, L, "mul");
     } else if(Op == "나눈") {
-        val = Builder.CreateFDiv(LL, L, "div");
+        value = Builder.CreateFDiv(LL, L, "div");
+    } else if(Op == "같다")   {
+        value = Builder.CreateFCmpUEQ(LL, L, "equal");
+        value = Builder.CreateUIToFP(value, llvm::Type::getDoubleTy(TheContext), "bool");
+    } else if(Op == "다르다")  {
+        value = Builder.CreateFCmpUNE(LL, L, "notequal");
+        value = Builder.CreateUIToFP(value, llvm::Type::getDoubleTy(TheContext), "bool");
+    } else if(Op == "보다 크다")    {
+        value = Builder.CreateFCmpUGT(LL, L, "greater");
+        value = Builder.CreateUIToFP(value, llvm::Type::getDoubleTy(TheContext), "bool");
+    } else if(Op == "보다 작다")    {
+        value = Builder.CreateFCmpULT(LL, L, "less");
+        value = Builder.CreateUIToFP(value, llvm::Type::getDoubleTy(TheContext), "bool");
+    } else if(Op == "보다 크거나 같다")    {
+        value = Builder.CreateFCmpUGE(LL, L, "greaterequal");
+        value = Builder.CreateUIToFP(value, llvm::Type::getDoubleTy(TheContext), "bool");
+    } else if(Op == "보다 작거나 같다")    {
+        value = Builder.CreateFCmpULE(LL, L, "lessequal");
+        value = Builder.CreateUIToFP(value, llvm::Type::getDoubleTy(TheContext), "bool");
     } else  {
         return LogErrorV("invalid binary operator");
     }
 
     if(typeid(*LLHS) == typeid(DeclareExprAST) || typeid(*LLHS) == typeid(IdentifierExprAST))   {
         VariableExprAST* LLHSE = static_cast<VariableExprAST *>(LLHS.get());
-        Builder.CreateStore(val, NamedValues[LLHSE->getName()]);
+        if(Op == "더한다" || Op == "뺀다" || Op == "곱한다" || Op == "나눈다")   {
+            Builder.CreateStore(value, NamedValues[LLHSE->getName()]);
+        }
     }
 
+    return value;
+}
+
+llvm::Value * CallExprAST::codegen() {
+    llvm::Function * CalleeFunction = getFunction(callee);
+    std::vector<llvm::Value *> ArgsV;
+
+    if(!CalleeFunction) {
+        return LogErrorV("-1");
+    }
+    if(CalleeFunction->arg_size() != args.size())   {
+        return LogErrorV("-1");
+    }
+    
+    for(int i = 0, e = args.size(); i != e; ++i){
+        ArgsV.push_back(args[i]->codegen());
+        if(!ArgsV.back())   {
+            return nullptr;
+        }
+    }
+    return Builder.CreateCall(CalleeFunction, ArgsV, "call");
+}
+
+llvm::Value *IfExprAST::codegen() {
+    llvm::Value *ConditionValue = Condition->codegen();
+    if (!ConditionValue)  {
+        return nullptr;
+    }
+
+    ConditionValue = Builder.CreateFCmpONE(ConditionValue, llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)), "ifcondition");
+
+    llvm::Function* theFunction = Builder.GetInsertBlock()->getParent();
+
+    llvm::BasicBlock* ThenBB = llvm::BasicBlock::Create(TheContext, "then", theFunction);
+    llvm::BasicBlock* ElseBB = llvm::BasicBlock::Create(TheContext, "else");
+    llvm::BasicBlock* MergeBB = llvm::BasicBlock::Create(TheContext, "afterif");
+
+    Builder.CreateCondBr(ConditionValue, ThenBB, ElseBB);
+
+    Builder.SetInsertPoint(ThenBB);
+
+    for(auto& thenValue : Then){
+        thenValue->codegen();
+    }
+
+    Builder.CreateBr(MergeBB);
+    
+    ThenBB = Builder.GetInsertBlock();
+
+    theFunction->getBasicBlockList().push_back(ElseBB);
+    Builder.SetInsertPoint(ElseBB);
+
+    for(auto& elseValue : Else){
+        elseValue->codegen();
+    }
+
+    Builder.CreateBr(MergeBB);
+    
+    ElseBB = Builder.GetInsertBlock();
+
+    theFunction->getBasicBlockList().push_back(MergeBB);
+    Builder.SetInsertPoint(MergeBB);
     return nullptr;
+}
+
+llvm::Value *WhileExprAST::codegen() {
+    llvm::Function *theFunction = Builder.GetInsertBlock()->getParent();
+    llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(TheContext, "loop", theFunction);
+    llvm::BasicBlock *AfterBB = llvm::BasicBlock::Create(TheContext, "afterloop", theFunction);
+    llvm::Value *ConditionValue = Condition->codegen();
+
+    ConditionValue = Builder.CreateFCmpUNE(ConditionValue, llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)), "loopcondition");
+
+    Builder.CreateCondBr(ConditionValue, LoopBB, AfterBB);
+
+    Builder.SetInsertPoint(LoopBB);
+
+    if (!ConditionValue)  {
+        return nullptr;
+    }
+
+    for(auto& bodyValue : Body){
+        bodyValue->codegen();
+    }
+
+    ConditionValue = Condition->codegen();
+
+    ConditionValue = Builder.CreateFCmpUNE(ConditionValue, llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)), "loopcondition");
+
+    Builder.CreateCondBr(ConditionValue, LoopBB, AfterBB);
+
+    Builder.SetInsertPoint(AfterBB);
+
+    return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(TheContext));
+}
+
+llvm::Function * PrototypeAST::codegen() {
+    std::vector<llvm::Type *> Doubles(Args.size(), llvm::Type::getDoubleTy(TheContext));
+    llvm::FunctionType * FT = llvm::FunctionType::get(llvm::Type::getDoubleTy(TheContext), Doubles, false);
+    llvm::Function * F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, TheModule.get());
+
+    unsigned Idx = 0;
+    for (auto &Arg : F->args())
+        Arg.setName(Args[Idx++].second);
+    
+    return F;
+}
+
+llvm::Function * FunctionAST::codegen() {
+    auto &P = *Proto;
+    FunctionProtos[Proto->getName()] = std::move(Proto);
+    llvm::Function * TheFunction = getFunction(P.getName());
+
+    if(!TheFunction)
+        return nullptr;
+    
+    if(!TheFunction->empty())
+        return (llvm::Function *)LogErrorV("Function cannot be redefined.");
+    
+    llvm::BasicBlock * BB = llvm::BasicBlock::Create(TheContext, "entry", TheFunction);
+    Builder.SetInsertPoint(BB);
+
+    NamedValues.clear();
+
+    for(auto & Arg : TheFunction->args()){ 
+        llvm::AllocaInst * Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
+        Builder.CreateStore(&Arg, Alloca);
+        NamedValues[Arg.getName()] = Alloca;
+    }
+    
+    for(auto& body : Body){
+        body->codegen();
+    }
+
+    if(Body.empty())    {
+        TheFunction->eraseFromParent();
+        return nullptr;
+    }
+
+    verifyFunction(*TheFunction);
+    TheFPM->run(*TheFunction);
+    return TheFunction;
 }
