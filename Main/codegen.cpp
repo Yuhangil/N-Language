@@ -1,21 +1,12 @@
-#include "parser.hpp"
+#include "codegen.hpp"
 
-extern std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
-extern llvm::LLVMContext TheContext;
-extern llvm::IRBuilder<> Builder;
-extern std::unique_ptr<llvm::Module> TheModule;
-extern std::map<std::string, llvm::AllocaInst *> NamedValues;
-extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
+std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
+llvm::LLVMContext TheContext;
+llvm::IRBuilder<> Builder(TheContext);
+std::unique_ptr<llvm::Module> TheModule;
+std::map<std::string, llvm::AllocaInst *> NamedValues;
+std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 
-std::unique_ptr<ExprAST> LogError_(const char *Str) {
-    fprintf(stderr, "LogError: %s\n", Str);
-    return nullptr;
-}
-
-llvm::Value *LogErrorV(const char *Str) {
-  LogError_(Str);
-  return nullptr;
-}
 static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, const std::string &name) {
     llvm::IRBuilder<> TmpB(&TheFunction->getEntryBlock(), TheFunction->getEntryBlock().begin());
     return TmpB.CreateAlloca(llvm::Type::getDoubleTy(TheContext), nullptr, name);

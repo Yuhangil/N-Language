@@ -1,12 +1,8 @@
 #include "parser.hpp"
-#include "lexer.hpp"
 
-std::unique_ptr<llvm::legacy::FunctionPassManager> TheFPM;
-llvm::LLVMContext TheContext;
-llvm::IRBuilder<> Builder(TheContext);
-std::unique_ptr<llvm::Module> TheModule;
-std::map<std::string, llvm::Value *> NamedValues;
-std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
+
+extern std::vector<std::string> valueArray;
+extern std::vector<int> tokenArray;
 
 unsigned int currentIterator = 0;
 
@@ -17,6 +13,11 @@ std::unique_ptr<ExprAST> LogError(const char *string) {
 std::unique_ptr<PrototypeAST> LogErrorP(const char *string) {
     LogError(string);
     return nullptr;
+}
+
+llvm::Value *LogErrorV(const char *string) {
+  LogError(string);
+  return nullptr;
 }
 
 int GetNextToken() {
@@ -99,8 +100,9 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
     //    return ParseIfExpr();
     //case tokenWhile:
     //    return ParseForExpr();
-    //default:
-        //return LogError("unknown token when expecting an expression");
+    default:
+        return LogError("unknown token when expecting an expression");
+        exit(0);
     }
 }
 
@@ -192,7 +194,7 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
     return std::make_unique<PrototypeAST>(functionName, std::move(argNames));
 }
 
-static std::unique_ptr<FunctionAST> ParseDefinition() {
+std::unique_ptr<FunctionAST> ParseDefinition() {
     if(tokenArray[currentIterator] > 13 || tokenArray[currentIterator] <= 0)    {
         return nullptr;
     }
@@ -217,94 +219,4 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
     } else  {
         return std::make_unique<FunctionAST>(std::move(proto), std::move(E));
     }
-}
-
-static int HandleDefinition() {
-    if (auto result = ParseDefinition()) {
-        auto functionCode = result->codegen();
-        functionCode->print(llvm::errs());
-        return 0;
-    } else {
-        return -1;
-    }
-}
-
-int main(int argc, char** argv)	{
-    if(argc < 2)        {
-        std::cout << "error : no such input file" << "\n";
-        exit(1);
-    }
-
-    TheModule = llvm::make_unique<llvm::Module>("code sibal", TheContext);
-    
-    TheFPM = llvm::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
-
-    TheFPM->doInitialization();
-
-    std::ifstream fileStream(argv[1]);
-    StoreToken(fileStream);
-    
-    while(true) {
-        if(HandleDefinition() == -1)    {
-            break;
-        }
-    }
-
-    llvm::InitializeAllTargetInfos();
-    llvm::InitializeAllTargets();
-    llvm::InitializeAllTargetMCs();
-    llvm::InitializeAllAsmParsers();
-    llvm::InitializeAllAsmPrinters();
-
-    auto TargetTriple = llvm::sys::getDefaultTargetTriple();
-    TheModule->setTargetTriple(TargetTriple);
-
-    std::string Error;
-    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
-
-    std::cout << "check1" << "\n";
-
-    // Print an error and exit if we couldn't find the requested target.
-    // This generally occurs if we've forgotten to initialise the
-    // TargetRegistry or we have a bogus target triple.
-    if (!Target) {
-      llvm::errs() << Error;
-      return 1;
-    }
-
-    auto CPU = "generic";
-    auto Features = "";
-
-    llvm::TargetOptions opt;
-    auto RM = llvm::Optional<llvm::Reloc::Model>();
-    auto TheTargetMachine =
-        Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
-
-    TheModule->setDataLayout(TheTargetMachine->createDataLayout());
-
-    auto Filename = "output.o";
-    std::error_code EC;
-    llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::F_None);
-
-    if (EC) {
-      llvm::errs() << "Could not open file: " << EC.message();
-      return 1;
-    }
-
-    std::cout << "check2" << "\n";
-
-    llvm::legacy::PassManager pass;
-    auto FileType = llvm::TargetMachine::CGFT_ObjectFile;
-
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, FileType)) {
-      llvm::errs() << "TheTargetMachine can't emit a file of this type";
-      return 1;
-    }
-
-    pass.run(*TheModule);
-    dest.flush();
-
-    llvm::outs() << "Wrote " << Filename << "\n";
-
-    return 0;
 }
