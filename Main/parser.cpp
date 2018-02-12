@@ -219,12 +219,13 @@ static std::unique_ptr<FunctionAST> ParseDefinition() {
     }
 }
 
-static void HandleDefinition() {
+static int HandleDefinition() {
     if (auto result = ParseDefinition()) {
         auto functionCode = result->codegen();
         functionCode->print(llvm::errs());
+        return 0;
     } else {
-        exit(0);
+        return -1;
     }
 }
 
@@ -235,20 +236,8 @@ int main(int argc, char** argv)	{
     }
 
     TheModule = llvm::make_unique<llvm::Module>("code sibal", TheContext);
-
-    // Create a new pass manager attached to it.
+    
     TheFPM = llvm::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());
-
-    // Promote allocas to registers.
-    //TheFPM->add(llvm::createPromoteMemoryToRegisterPass());
-    // Do simple "peephole" optimizations and bit-twiddling optzns.
-    //TheFPM->add(llvm::createInstructionCombiningPass());
-    // Reassociate expressions.
-    //TheFPM->add(llvm::createReassociatePass());
-    // Eliminate Common SubExpressions.
-    //TheFPM->add(llvm::createGVNPass());
-    // Simplify the control flow graph (deleting unreachable blocks, etc).
-    //TheFPM->add(llvm::createCFGSimplificationPass());
 
     TheFPM->doInitialization();
 
@@ -256,7 +245,9 @@ int main(int argc, char** argv)	{
     StoreToken(fileStream);
     
     while(true) {
-        HandleDefinition();
+        if(HandleDefinition() == -1)    {
+            break;
+        }
     }
 
     llvm::InitializeAllTargetInfos();
@@ -270,6 +261,8 @@ int main(int argc, char** argv)	{
 
     std::string Error;
     auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
+
+    std::cout << "check1" << "\n";
 
     // Print an error and exit if we couldn't find the requested target.
     // This generally occurs if we've forgotten to initialise the
@@ -297,6 +290,8 @@ int main(int argc, char** argv)	{
       llvm::errs() << "Could not open file: " << EC.message();
       return 1;
     }
+
+    std::cout << "check2" << "\n";
 
     llvm::legacy::PassManager pass;
     auto FileType = llvm::TargetMachine::CGFT_ObjectFile;
