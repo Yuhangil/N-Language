@@ -21,7 +21,7 @@
 
 ## 자료형
 
-기본 자료형 : int(4 byte), double(8 byte)
+기본 자료형 : int(8 byte), double(8 byte)
 
 ## 기본 문법
 
