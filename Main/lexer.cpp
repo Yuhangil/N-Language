@@ -27,6 +27,8 @@ int StoreToken(std::ifstream &fileStream)	{
 		temporary = std::regex_replace(temporary, pattern[i], std::to_string(i + 1) + " ");
 	}
 
+	// 혹시 나중에 최적화할 때 쓰세요
+
 	for(int i = 0; i < original.length(); ++i)	{
 		while(original[i] != ' ' && original[i] != '\n' && original[i] != '\0')	{
 			temp += original[i];
@@ -50,6 +52,8 @@ int StoreToken(std::ifstream &fileStream)	{
 		}
 		temp.clear();
 	}
+
+	// 여기까지
 
 	return 0;
 }

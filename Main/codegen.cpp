@@ -30,6 +30,14 @@ llvm::Value *NumberExprAST::codegen() {
     return llvm::ConstantFP::get(TheContext, llvm::APFloat(value));
 }
 
+// start
+
+llvm::Value *StringExprAST::codegen() {
+    return llvm::ConstantInt::get(TheContext, llvm::APFloat(value));
+}
+
+// end
+
 llvm::Value * DeclareExprAST::codegen(){
     llvm::Function *theFunction = Builder.GetInsertBlock()->getParent();
     llvm::Value *initValue = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));

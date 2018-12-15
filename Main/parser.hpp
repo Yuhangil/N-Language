@@ -20,17 +20,18 @@
 enum Token    {
     tokenInteger = 1,
     tokenDouble = 2,
-	tokenReturnType = 3,
-    tokenType = 4,
-    tokenIf = 5,
-    tokenElse = 6,
-    tokenWhile = 7,
-	tokenOperator = 8,
-	tokenReturn = 9,
-	tokenBreak = 10,
-    tokenExist = 11,
-	tokenIdentifier = 12,
-	tokenPunctuation = 13
+    tokenString = 3,
+	tokenReturnType = 4,
+    tokenType = 5,
+    tokenIf = 6,
+    tokenElse = 7,
+    tokenWhile = 8,
+	tokenOperator = 9,
+	tokenReturn = 10,
+	tokenBreak = 11,
+    tokenExist = 12,
+	tokenIdentifier = 13,
+	tokenPunctuation = 14
 };
 
 enum Mode   {

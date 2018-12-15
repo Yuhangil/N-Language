@@ -17,6 +17,16 @@ public:
     llvm::Value* codegen() override;
 };
 
+class CharExprAST : public ExprAST    {
+    std::string type;
+    char value;
+
+public:
+    StringExprAST(const std::string &type, char value) : type(type), value(value) {}
+
+    llvm::Value* codegen() override;
+};
+
 class VariableExprAST : public ExprAST  {
     std::string name;
 

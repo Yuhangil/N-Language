@@ -15,8 +15,9 @@ static std::regex pattern[patternSize] =
 {
 	std::regex("-?\\d+[^.]"),
 	std::regex("-?\\d+\\.\\d+"),
-	std::regex("정수형|실수형"),
-	std::regex("정수|실수"),
+	std::regex("\"(.*)\""),
+	std::regex("정수형|실수형|문자형"),
+	std::regex("정수|실수|문자"),
 	std::regex("면|이면|라면"),
 	std::regex("아니면"),
 	std::regex("동안"),

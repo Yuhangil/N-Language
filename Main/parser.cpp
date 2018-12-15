@@ -44,6 +44,15 @@ static std::unique_ptr<ExprAST> ParseNumberExpr()   {
     return std::make_unique<NumberExprAST>(type, value);
 }
 
+static std::unique_ptr<ExprAST> ParseStringExpr()   {
+    std::string type;
+    std::string value;
+
+    GetNextToken();
+
+    return std::make_unique<StringExprAST>(type, value);
+}
+
 static std::unique_ptr<ExprAST> ParseIdentifierExpr() {
     std::string name = valueArray[currentIterator];
     std::vector<std::unique_ptr<ExprAST>> args;
@@ -234,6 +243,8 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
         case tokenInteger:
         case tokenDouble:
             return ParseNumberExpr();
+        case tokenString:
+            return ParseStringExpr();
         default:
             return LogError("unknown token when expecting an expression");
             exit(0);
