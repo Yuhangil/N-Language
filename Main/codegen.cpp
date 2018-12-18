@@ -33,7 +33,7 @@ llvm::Value *NumberExprAST::codegen() {
 // start
 
 llvm::Value *StringExprAST::codegen() {
-    return llvm::ConstantInt::get(TheContext, llvm::APFloat(value));
+    return llvm::ConstantDataSequential::get(TheContext, llvm::StringRef(value));
 }
 
 // end

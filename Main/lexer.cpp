@@ -29,7 +29,7 @@ int StoreToken(std::ifstream &fileStream)	{
 
 	// 혹시 나중에 최적화할 때 쓰세요
 
-	for(int i = 0; i < original.length(); ++i)	{
+	for(int i = 0; i < (int)original.length(); ++i)	{
 		while(original[i] != ' ' && original[i] != '\n' && original[i] != '\0')	{
 			temp += original[i];
 			++i;
@@ -41,7 +41,7 @@ int StoreToken(std::ifstream &fileStream)	{
 		temp.clear();
 	}
 
-	for(int i = 0; i < temporary.length(); ++i)	{
+	for(int i = 0; i < (int)temporary.length(); ++i)	{
 		while(temporary[i] != ' ' && temporary[i] != '\n' && temporary[i] != '\0')	{
 			temp += temporary[i];
 			++i;
