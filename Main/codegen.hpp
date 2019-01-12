@@ -2,7 +2,7 @@
 #define __CODEGEN_H__
 
 #include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -23,6 +23,8 @@
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
+#include "llvm/Transforms/Utils.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
 #include <iostream>
 #include "AST.hpp"
 

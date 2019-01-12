@@ -57,7 +57,6 @@ int main(int argc, char** argv)	{
     TheFPM->add(llvm::createCFGSimplificationPass());
     TheFPM->doInitialization();
 
-
     f.open("output.bc", std::fstream::out | std::fstream::trunc);
     f.close();
     
@@ -81,7 +80,7 @@ int main(int argc, char** argv)	{
       return 1;
     }
 
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, FileType)) {
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
       llvm::errs() << "TheTargetMachine can't emit a file of this type";
       return 1;
     }

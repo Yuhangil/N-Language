@@ -16,7 +16,7 @@ public:
 
     llvm::Value* codegen() override;
 };
-
+/*
 class StringExprAST : public ExprAST    {
     std::string type;
     std::string value;
@@ -26,7 +26,7 @@ public:
 
     llvm::Value* codegen() override;
 };
-
+*/
 class VariableExprAST : public ExprAST  {
     std::string name;
 
@@ -118,7 +118,7 @@ public:
     const std::string &getName() const { return name; }
 }; 
 
-class FunctionAST { 
+class FunctionAST {
     std::string type;
 	std::unique_ptr<PrototypeAST> Proto;
 	std::vector<std::unique_ptr<ExprAST>> Body;

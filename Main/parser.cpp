@@ -11,13 +11,13 @@ std::unique_ptr<ExprAST> LogError(const char* string) {
     return nullptr;
 }
 std::unique_ptr<PrototypeAST> LogErrorP(const char* string) {
-    LogError(string);
+    std::cout << "LogError: " << string << "\n";
 
     return nullptr;
 }
 
 llvm::Value* LogErrorV(const char* string) {
-    LogError(string);
+    std::cout << "LogError: " << string << "\n";
     
     return nullptr;
 }
@@ -44,14 +44,18 @@ static std::unique_ptr<ExprAST> ParseNumberExpr()   {
     return std::make_unique<NumberExprAST>(type, value);
 }
 
+/*
 static std::unique_ptr<ExprAST> ParseStringExpr()   {
     std::string type;
     std::string value;
+
+    value = valueArray[currentIterator];
 
     GetNextToken();
 
     return std::make_unique<StringExprAST>(type, value);
 }
+*/
 
 static std::unique_ptr<ExprAST> ParseIdentifierExpr() {
     std::string name = valueArray[currentIterator];
@@ -243,8 +247,6 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
         case tokenInteger:
         case tokenDouble:
             return ParseNumberExpr();
-        case tokenString:
-            return ParseStringExpr();
         default:
             return LogError("unknown token when expecting an expression");
             exit(0);
@@ -316,4 +318,3 @@ static std::unique_ptr<ExprAST> ParseExpression(int mode) {
 
     return result;
 }
-

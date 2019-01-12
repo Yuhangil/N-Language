@@ -12,7 +12,7 @@ static llvm::AllocaInst *CreateEntryBlockAlloca(llvm::Function *TheFunction, con
     return EntryBlock.CreateAlloca(llvm::Type::getDoubleTy(TheContext), nullptr, name);
 }
 
-llvm::Function *getFunction(std::string Name) {
+llvm::Function* getFunction(std::string Name) {
     if (auto* F = TheModule->getFunction(Name))    {
         return F;
     }
@@ -26,19 +26,20 @@ llvm::Function *getFunction(std::string Name) {
     return nullptr;
 }
 
-llvm::Value *NumberExprAST::codegen() {
+llvm::Value* NumberExprAST::codegen() {
     return llvm::ConstantFP::get(TheContext, llvm::APFloat(value));
 }
 
+/*
 // start
 
 llvm::Value *StringExprAST::codegen() {
-    return llvm::ConstantDataSequential::get(TheContext, llvm::StringRef(value));
+    return llvm::ConstantArray::get(context, value.c_str());
 }
 
-// end
+// end */
 
-llvm::Value * DeclareExprAST::codegen(){
+llvm::Value* DeclareExprAST::codegen(){
     llvm::Function *theFunction = Builder.GetInsertBlock()->getParent();
     llvm::Value *initValue = llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0));
     llvm::AllocaInst *alloca = CreateEntryBlockAlloca(theFunction, getName());
@@ -49,8 +50,8 @@ llvm::Value * DeclareExprAST::codegen(){
     return nullptr;
 }
 
-llvm::Value * IdentifierExprAST::codegen(){
-    llvm::Value *value = NamedValues[getName()];
+llvm::Value* IdentifierExprAST::codegen(){
+    llvm::Value* value = NamedValues[getName()];
     if (!value) {
         return LogErrorV("Unknown variable name");
     }
@@ -58,7 +59,7 @@ llvm::Value * IdentifierExprAST::codegen(){
     return Builder.CreateLoad(value, getName().c_str());
 }
 
-llvm::Value * ReturnExprAST::codegen(){
+llvm::Value* ReturnExprAST::codegen(){
     llvm::Value* value;
 
     value = Return->codegen();
@@ -67,7 +68,7 @@ llvm::Value * ReturnExprAST::codegen(){
     return value;
 }
 
-llvm::Value * OpExprAST::codegen(){
+llvm::Value* OpExprAST::codegen(){
     if(Op == "이다"){
         VariableExprAST* LLHSE = static_cast<VariableExprAST *>(LLHS.get());
         if(typeid(*LLHS) == typeid(DeclareExprAST))  {
@@ -75,10 +76,10 @@ llvm::Value * OpExprAST::codegen(){
         }
         if(!LLHSE)
             return LogErrorV("destination of '=' must be a variable");
-        llvm::Value * Val = LHS->codegen();
+        llvm::Value* Val = LHS->codegen();
         if(!Val)
             return nullptr;
-        llvm::Value *Variable = NamedValues[LLHSE->getName()];
+        llvm::Value* Variable = NamedValues[LLHSE->getName()];
         if (!Variable)  {
             return LogErrorV("Unknown variable name");
         }
@@ -86,13 +87,13 @@ llvm::Value * OpExprAST::codegen(){
         return Val;
     }
 
-    llvm::Value *LL = LLHS->codegen();
-    llvm::Value *L = LHS->codegen();
+    llvm::Value* LL = LLHS->codegen();
+    llvm::Value* L = LHS->codegen();
     if(!LL || !L)  {
         return nullptr;
     }
 
-    llvm::Value *value;
+    llvm::Value* value;
     
     if(Op == "더한다"){
         value = Builder.CreateFAdd(LL, L, "addstore");
@@ -142,7 +143,7 @@ llvm::Value * OpExprAST::codegen(){
     return value;
 }
 
-llvm::Value * CallExprAST::codegen() {
+llvm::Value* CallExprAST::codegen() {
     llvm::Function * CalleeFunction = getFunction(callee);
     std::vector<llvm::Value *> ArgsV;
 
@@ -162,8 +163,8 @@ llvm::Value * CallExprAST::codegen() {
     return Builder.CreateCall(CalleeFunction, ArgsV, "call");
 }
 
-llvm::Value *IfExprAST::codegen() {
-    llvm::Value *ConditionValue = Condition->codegen();
+llvm::Value* IfExprAST::codegen() {
+    llvm::Value* ConditionValue = Condition->codegen();
     if (!ConditionValue)  {
         return nullptr;
     }
@@ -204,11 +205,11 @@ llvm::Value *IfExprAST::codegen() {
     return nullptr;
 }
 
-llvm::Value *WhileExprAST::codegen() {
+llvm::Value* WhileExprAST::codegen() {
     llvm::Function *theFunction = Builder.GetInsertBlock()->getParent();
-    llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(TheContext, "loop", theFunction);
-    llvm::BasicBlock *AfterBB = llvm::BasicBlock::Create(TheContext, "afterloop", theFunction);
-    llvm::Value *ConditionValue = Condition->codegen();
+    llvm::BasicBlock* LoopBB = llvm::BasicBlock::Create(TheContext, "loop", theFunction);
+    llvm::BasicBlock* AfterBB = llvm::BasicBlock::Create(TheContext, "afterloop", theFunction);
+    llvm::Value* ConditionValue = Condition->codegen();
 
     ConditionValue = Builder.CreateFCmpUNE(ConditionValue, llvm::ConstantFP::get(TheContext, llvm::APFloat(0.0)), "loopcondition");
 
@@ -235,10 +236,10 @@ llvm::Value *WhileExprAST::codegen() {
     return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(TheContext));
 }
 
-llvm::Function * PrototypeAST::codegen() {
+llvm::Function* PrototypeAST::codegen() {
     std::vector<llvm::Type *> Doubles(Args.size(), llvm::Type::getDoubleTy(TheContext));
-    llvm::FunctionType * FT = llvm::FunctionType::get(llvm::Type::getDoubleTy(TheContext), Doubles, false);
-    llvm::Function * F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, TheModule.get());
+    llvm::FunctionType* FT = llvm::FunctionType::get(llvm::Type::getDoubleTy(TheContext), Doubles, false);
+    llvm::Function* F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, TheModule.get());
 
     unsigned Idx = 0;
     for (auto &Arg : F->args())
@@ -247,10 +248,10 @@ llvm::Function * PrototypeAST::codegen() {
     return F;
 }
 
-llvm::Function * FunctionAST::codegen() {
+llvm::Function* FunctionAST::codegen() {
     auto &P = *Proto;
     FunctionProtos[Proto->getName()] = std::move(Proto);
-    llvm::Function * TheFunction = getFunction(P.getName());
+    llvm::Function* TheFunction = getFunction(P.getName());
 
     if(!TheFunction)
         return nullptr;
@@ -258,13 +259,13 @@ llvm::Function * FunctionAST::codegen() {
     if(!TheFunction->empty())
         return (llvm::Function *)LogErrorV("Function cannot be redefined.");
     
-    llvm::BasicBlock * BB = llvm::BasicBlock::Create(TheContext, "entry", TheFunction);
+    llvm::BasicBlock* BB = llvm::BasicBlock::Create(TheContext, "entry", TheFunction);
     Builder.SetInsertPoint(BB);
 
     NamedValues.clear();
 
     for(auto & Arg : TheFunction->args()){ 
-        llvm::AllocaInst * Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
+        llvm::AllocaInst* Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
         Builder.CreateStore(&Arg, Alloca);
         NamedValues[Arg.getName()] = Alloca;
     }
