@@ -16,7 +16,7 @@ public:
 
     llvm::Value* codegen() override;
 };
-/*
+
 class StringExprAST : public ExprAST    {
     std::string type;
     std::string value;
@@ -26,7 +26,7 @@ public:
 
     llvm::Value* codegen() override;
 };
-*/
+
 class VariableExprAST : public ExprAST  {
     std::string name;
 

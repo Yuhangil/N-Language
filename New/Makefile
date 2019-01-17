@@ -4,8 +4,10 @@ CFLAGS = -Wno-unknown-warning-option `llvm-config --cxxflags --ldflags --system-
 
 all:
 	clang++ $(CFLAGS) -c Lexer.cpp
+	clang++ $(CFLAGS) -c Parser.cpp
+	clang++ $(CFLAGS) -c CodeGenerator.cpp
 	clang++ $(CFLAGS) -c main.cpp
-	clang++ $(CFLAGS) -o lexer lexer.o main.o
+	clang++ $(CFLAGS) -o wtf Lexer.o Parser.o CodeGenerator.o main.o
 
 clean:
 	rm *.o

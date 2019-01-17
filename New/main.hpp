@@ -5,7 +5,8 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "CodeGenerator.hpp"
 
-int LexicalAnalysis(std::string inputString);
+int LexicalAnalysis(std::string &inputString);
 
 #endif 
