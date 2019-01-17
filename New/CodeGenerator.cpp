@@ -31,15 +31,25 @@ llvm::Value* NumberExprAST::codegen() {
 }
 
 llvm::Value* StringExprAST::codegen() {
-    /*
-    std::vector<llvm::Constant *> chars(value.size());
-    for(unsigned int i = 0; i < value.size(); ++i)  {
-        chars[i] = llvm::ConstantInt::get(i8, value[i]);
+    auto str = this->value;
+    auto charType = llvm::IntegerType::get(TheContext, 8);
+
+    std::vector<llvm::Constant *> chars(str.length());
+    for(unsigned int i = 0; i < str.size(); i++) {
+      chars[i] = llvm::ConstantInt::get(charType, str[i]);
     }
 
-    return llvm::ConstantArray::get(llvm::ArrayType::get(i8, chars.size()), chars);
-    */
-    return llvm::ConstantDataArray::get(TheContext, value);
+    chars.push_back(llvm::ConstantInt::get(charType, 0));
+
+    auto stringType = llvm::ArrayType::get(charType, chars.size());
+
+    auto globalDeclaration = (llvm::GlobalVariable*) TheModule->getOrInsertGlobal(".str", stringType);
+    globalDeclaration->setInitializer(llvm::ConstantArray::get(stringType, chars));
+    globalDeclaration->setConstant(true);
+    globalDeclaration->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
+    globalDeclaration->setUnnamedAddr (llvm::GlobalValue::UnnamedAddr::Global);
+
+    return llvm::ConstantExpr::getBitCast(globalDeclaration, charType->getPointerTo());
 }
 
 llvm::Value* DeclareExprAST::codegen(){
