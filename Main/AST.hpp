@@ -8,21 +8,19 @@ public:
 };
 
 class NumberExprAST : public ExprAST    {
-    std::string type;
     double value;
 
 public:
-    NumberExprAST(const std::string &type, double value) : type(type), value(value) {}
+    NumberExprAST(double value) : value(value) {}
 
     llvm::Value* codegen() override;
 };
 
 class StringExprAST : public ExprAST    {
-    std::string type;
     std::string value;
 
 public:
-    StringExprAST(const std::string &type, std::string value) : type(type), value(value) {}
+    StringExprAST(std::string value) : value(value) {}
 
     llvm::Value* codegen() override;
 };

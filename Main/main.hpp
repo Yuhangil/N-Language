@@ -1,10 +1,12 @@
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef __MAIN_HPP__
+#define __MAIN_HPP__
 
-#include "llvm/Support/raw_os_ostream.h"
+#include <string>
 #include <fstream>
-#include "codegen.hpp"
+#include <sstream>
+#include <iostream>
+#include "CodeGenerator.hpp"
 
-int StoreToken(std::ifstream &fileStream);
+int LexicalAnalysis(std::string &inputString);
 
-#endif
+#endif 

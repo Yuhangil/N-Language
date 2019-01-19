@@ -1,16 +1,31 @@
-#ifndef __LEXER_H__
-#define __LEXER_H__
+#ifndef __LEXER_HPP__
+#define __LEXER_HPP__
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <regex>
 #include <string>
 #include <vector>
+#include <regex>
+#include <iostream>
+#include <fstream>
 
-int StoreToken(std::ifstream &fileStream);
+int LexicalAnalysis(std::string inputString);
 
-std::vector<std::regex> pattern =
+enum Token    {
+	tokenFigure = 1,
+    tokenString = 2,
+	tokenReturnType = 3,
+    tokenType = 4,
+    tokenIf = 5,
+    tokenElse = 6,
+    tokenWhile = 7,
+	tokenOperator = 8,
+	tokenReturn = 9,
+	tokenBreak = 10,
+    tokenExist = 11,
+	tokenPunctuation = 12,
+	tokenIdentifier = 13
+};
+
+static std::vector<std::regex> pattern =
 {
 	std::regex("-?\\d+(\\.\\d+)?"),
 	std::regex("\"([^\"]*)\""),
@@ -27,7 +42,7 @@ std::vector<std::regex> pattern =
 	std::regex("(\\s)([^\\d\\s][^\\s]*)(\\s)")
 };
 
-std::vector<std::regex> removePattern =
+static std::vector<std::regex> removePattern =
 {
 	std::regex("(\\s)([^\\d\\s][^\\s]*|-?\\d+\\.?\\d*)(이다\\.)(\\s))"),
 	std::regex("(\\s)([^\\d\\s][^\\s]*|-?\\d+\\.?\\d*)(은|는|이|가|을|를|와|과|에서|에)(\\s)"),
@@ -37,10 +52,11 @@ std::vector<std::regex> removePattern =
 	std::regex("(더한|뺀|곱한|나눈)(\\s)(값)"),
 	std::regex("([^\\d])(\\.)"),
 	std::regex("핵심함수"),
-	std::regex("(\")([^\"]*)(\")")
+	std::regex("(\")([^\"]*)(\")"),
+    std::regex("(\\s)([^\\d\\s][^\\s]*|-?\\d+\\.?\\d*)(은|는|이|가|을|를|와|과|에서|에)(\\s)")
 };
 
-std::vector<std::string> removedString = 
+static std::vector<std::string> removedString = 
 {
 	std::string("$1$2 $3$4"),
 	std::string("$1$2$4"),
@@ -50,7 +66,8 @@ std::vector<std::string> removedString =
 	std::string("$1 "),
 	std::string("$1 $2"),
 	std::string("main"),
-	std::string("$2")
+	std::string("$2"),
+    std::string("$1$2$4")
 };
 
 #endif

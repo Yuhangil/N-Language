@@ -33,7 +33,9 @@ int main(int argc, char** argv)	{
 
     auto CPU = "generic", Features = "";
     std::string command, Error, Filename = "output.o";
-    std::ifstream fileStream(argv[1]);
+    std::ifstream inputFile(argv[1]);
+    std::stringstream inputStream;
+    std::string inputString;
     std::fstream f;
     auto TargetTriple = llvm::sys::getDefaultTargetTriple();
     auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
@@ -45,7 +47,10 @@ int main(int argc, char** argv)	{
     llvm::legacy::PassManager pass;
     auto FileType = llvm::TargetMachine::CGFT_ObjectFile;
 
-    StoreToken(fileStream);
+    inputStream << inputFile.rdbuf();
+    inputString = inputStream.str();
+
+    LexicalAnalysis(inputString); 
 
     TheModule = llvm::make_unique<llvm::Module>("N-Language", TheContext);
     TheFPM = llvm::make_unique<llvm::legacy::FunctionPassManager>(TheModule.get());

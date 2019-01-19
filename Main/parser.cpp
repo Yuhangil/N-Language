@@ -1,4 +1,4 @@
-#include "parser.hpp"
+#include "Parser.hpp"
 
 extern std::vector<std::string> valueArray;
 extern std::vector<int> tokenArray;
@@ -10,13 +10,13 @@ std::unique_ptr<ExprAST> LogError(const char* string) {
 
     return nullptr;
 }
-std::unique_ptr<PrototypeAST> LogErrorP(const char* string) {
+std::unique_ptr<PrototypeAST> LogErrorPrototype(const char* string) {
     std::cout << "LogError: " << string << "\n";
 
     return nullptr;
 }
 
-llvm::Value* LogErrorV(const char* string) {
+llvm::Value* LogErrorValue(const char* string) {
     std::cout << "LogError: " << string << "\n";
     
     return nullptr;
@@ -29,33 +29,24 @@ int GetNextToken() {
 static std::unique_ptr<ExprAST> ParseExpression(int mode);
 
 static std::unique_ptr<ExprAST> ParseNumberExpr()   {
-    std::string type;
     double value;
-
-    switch(tokenArray[currentIterator]) {
-        case tokenInteger: type = "int";
-        case tokenDouble: type = "double";
-    }
 
     value = std::stod(valueArray[currentIterator]);
 
     GetNextToken();
 
-    return std::make_unique<NumberExprAST>(type, value);
+    return std::make_unique<NumberExprAST>(value);
 }
 
-/*
 static std::unique_ptr<ExprAST> ParseStringExpr()   {
-    std::string type;
     std::string value;
 
     value = valueArray[currentIterator];
 
     GetNextToken();
 
-    return std::make_unique<StringExprAST>(type, value);
+    return std::make_unique<StringExprAST>(value);
 }
-*/
 
 static std::unique_ptr<ExprAST> ParseIdentifierExpr() {
     std::string name = valueArray[currentIterator];
@@ -85,6 +76,7 @@ static std::unique_ptr<ExprAST> ParseIdentifierExpr() {
             if (valueArray[currentIterator] != ",") {
                 return LogError("Expected ')' or ',' in argument list");
             }
+
             GetNextToken();
         }
     }
@@ -173,7 +165,7 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
     GetNextToken();
 
     if (valueArray[currentIterator] != "(") {
-        return LogErrorP("Expected '(' in prototype");
+        return LogErrorPrototype("Expected '(' in prototype");
     }
 
     while (tokenArray[GetNextToken()] == tokenType)   {
@@ -182,7 +174,7 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
         GetNextToken();
         
         if(tokenArray[currentIterator] != tokenIdentifier)  {
-            return LogErrorP("Expected id in prototype");
+            return LogErrorPrototype("Expected id in prototype");
         }
         
         Args.push_back(std::make_pair(type, valueArray[currentIterator]));
@@ -193,13 +185,13 @@ static std::unique_ptr<PrototypeAST> ParsePrototype() {
             if(valueArray[currentIterator] == ")")  {
                 break;
             } else    {
-                return LogErrorP("Expected ',' in prototype");
+                return LogErrorPrototype("Expected ',' in prototype");
             }
         }
     }
 
     if (valueArray[currentIterator] != ")") {
-        return LogErrorP("Expected ')' in prototype");
+        return LogErrorPrototype("Expected ')' in prototype");
     }
 
     GetNextToken();
@@ -244,11 +236,12 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
             return ParseDeclareExpr();
         case tokenIdentifier:
             return ParseIdentifierExpr();
-        case tokenInteger:
-        case tokenDouble:
+        case tokenFigure:
             return ParseNumberExpr();
+        case tokenString:
+            return ParseStringExpr();
         default:
-            return LogError("unknown token when expecting an expression");
+            LogError("unknown token when expecting an expression");
             exit(0);
     }
 }
